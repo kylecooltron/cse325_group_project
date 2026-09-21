@@ -1,0 +1,38 @@
+@page "/pizza-specials"
+@using BlazorGroupProjectApp.Models
+@using BlazorGroupProjectApp.Services
+@inject PizzaService PizzaService
+@rendermode InteractiveServer
+
+<PageTitle>Pizza Specials</PageTitle>
+
+<h1>Pizza Specials</h1>
+
+@if (specials == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <ul class="pizza-cards">
+        @foreach (var special in specials)
+        {
+            <li style="background-image: url('@special.ImageUrl')">
+                <div class="pizza-info">
+                    <span class="title">@special.Name</span>
+                    @special.Description
+                    <span class="price">@special.GetFormattedBasePrice()</span>
+                </div>
+            </li>
+        }
+    </ul>
+}
+
+@code {
+    private List<PizzaSpecial>? specials;
+
+    protected override async Task OnInitializedAsync()
+    {
+        specials = await PizzaService.GetSpecialsAsync();
+    }
+}

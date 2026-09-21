@@ -1,0 +1,5 @@
+dotnet new razorcomponent -n PizzaBrowser -o Pages
+The -n option specifies the name of the component to add. This example adds a new file named PizzaBrowser.razor.
+The -o option specifies the folder that you want to contain the new component.
+
+dotnet watch

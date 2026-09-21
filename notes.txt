@@ -3,3 +3,94 @@ https://trello.com/invite/b/6ab09291ebb9cfae05c3b296/ATTIddb48f74d2904832afd34a6
 
 Github Repo
 https://github.com/kylecooltron/cse325_group_project
+
+Project Ideas:
+prediction market type of idea where we tie into some APIs and let you predict what you think it going to happen and then see how it plays out. 
+Maybe weather or something silly like that.
+
+
+
+Title: ClimateSeer
+Project Overview:
+
+A prediction platform where you create an account and making weather / climate based predictions.
+Your predictions are then compared against actual weather data and scores are given based on accuracy.
+Score points and attempt to climb the leader-board. Different prediction types make it interesting.
+Public leader boards update by seasons. Each month has a different leader board. Over time you can compare your year over year accuracy.
+Predictions involve locations, ranges, temperature, wind, percipitation. Points will be somewhat abstract with a certain scale or rules, but accurate percentages and stats will also be provided. 
+The further in the future the prediction is, the more points you stand to earn. 
+Also, the more your prediction differs from the average median weather for that time / place, the more you stand to earn.
+
+
+What problem does your application solve or what need does it meet?
+
+Our application gives people a way to measure how accurate their weather predictions actually are. 
+Users submit forecasts for temperature and precipitation before the target date, and the application automatically compares their predictions against real weather data. 
+Users earn points based on accuracy and can track their performance over time through statistics, rankings, and historical predictions.
+This helps meet the need of people being able to research and predict weather with a certain level of accuracy.
+This solves the problem of something like this not existing yet.
+I think it's a creative idea that will keep me more engaged than making another todo / recipe app.
+Another related problem, is that different weather apps have differing forecasts, so you can start to determine which is most trustworthy, or maybe combining forecasts to make your own predictions.
+It allows you to get to know your area better and get a feel for how weather systems work.
+
+Who would use your application? 
+
+Outdoors enthusiasts, weather watchers, sports players, photographers
+
+
+What makes your idea interesting or valuable? 
+
+It allows people who spend a lot of time outside to develop the skill of weather prediction in a fun way.
+
+
+Project Scope: 
+
+What's IN:
+- login
+- home page with current month leader board
+- past leader boards page
+- current weather
+- past predictions list page
+- make a new prediction form to submit
+- alert when you log in and you have predictions that have passed and are ready to review the results
+- home page has a component that shows your account points
+- account stats page -- or maybe this is on the home page
+Stretch goal:
+- also maybe is a profile management page?
+
+
+What's OUT: 
+- no money involved
+- no friends / connections
+- no seeing other people's account stats
+- no animations or super fancy UI
+- no Year over Year accuracy stats page
+
+
+App Features:
+- Users can create an account (db, auth)
+- Users can make predictions (db)
+- Users can see results for past predictions (db)
+- Users can see total points earned (db)
+- Users can see leader board for month (db)
+- Users are alerted on log-in when past predictions are ready to review the result
+Stretch goal:
+- Users can customize account with image (db, file upload)
+
+Trello add user stories like: 
+Created 13 stories ✅
+
+
+Technical Considerations
+Data Storage:  user profiles, predictions, prediction results
+User Accounts: YES. Users need to create accounts and log in
+External Services: Weather data, possibly Open Map
+Device Compatibility: It will be a web-app, but the UI will respond to different screen sizes
+Basic Security: I think I'll be using OAuth so people can sign in with Google. Either that or whatever Auth we learn about in this class.
+
+Project Links: 
+GitHub Repository: https://github.com/kylecooltron/cse325_group_project
+Trello Board: https://trello.com/invite/b/6ab09291ebb9cfae05c3b296/ATTIddb48f74d2904832afd34a635af2917c7791DD2F/cse325-group-project
+
+
+
