@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "0fWYLzb2srQ=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\kylej\\OneDrive\\Documents\\_BYU\\BYU_Sep_2026\\.NET - CSE325\\cse325_group_project\\BlazorGroupProjectApp\\BlazorGroupProjectApp.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\kylej\\.nuget\\packages\\microsoft.aspnetcore.app.internal.assets\\10.0.12\\microsoft.aspnetcore.app.internal.assets.10.0.12.nupkg.sha512"
+  ],
+  "logs": []
+}
