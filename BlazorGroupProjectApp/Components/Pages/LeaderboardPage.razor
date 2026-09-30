@@ -1,0 +1,28 @@
+@page "/leaderboard"
+@inject BlazorGroupProjectApp.Services.LeaderboardService LeaderboardService
+
+<PageTitle>Leaderboard - ClimateSeer</PageTitle>
+
+<h1>Leaderboard</h1>
+
+@if (entries == null)
+{
+    <p>Loading leaderboard...</p>
+}
+else if (!entries.Any())
+{
+    <p>No scores yet this month.</p>
+}
+else
+{
+    <LeaderboardTable Entries="entries" />
+}
+
+@code {
+    private List<BlazorGroupProjectApp.Models.LeaderboardEntry>? entries;
+
+    protected override async Task OnInitializedAsync()
+    {
+        entries = await LeaderboardService.GetCurrentMonthLeaderboardAsync();
+    }
+}

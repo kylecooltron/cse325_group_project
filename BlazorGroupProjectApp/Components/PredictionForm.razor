@@ -1,0 +1,64 @@
+@using BlazorGroupProjectApp.Models
+@inject BlazorGroupProjectApp.Services.PredictionService PredictionService
+@inject NavigationManager NavigationManager
+
+<h2>Make a Prediction</h2>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <p style="color:red">@errorMessage</p>
+}
+
+<div>
+    <label>Location</label>
+    <input @bind="prediction.Location" />
+</div>
+<div>
+    <label>Target Date</label>
+    <input type="date" @bind="prediction.TargetDate" />
+</div>
+<div>
+    <label>Predicted Temperature (°F)</label>
+    <input type="number" @bind="prediction.PredictedTemperature" />
+</div>
+<div>
+    <label>Predicted Precipitation (inches)</label>
+    <input type="number" step="0.01" @bind="prediction.PredictedPrecipitation" />
+</div>
+<div>
+    <label>Predicted Wind Speed (mph)</label>
+    <input type="number" @bind="prediction.PredictedWindSpeed" />
+</div>
+
+<button @onclick="Submit" disabled="@isSubmitting">
+    @(isSubmitting ? "Submitting..." : "Submit Prediction")
+</button>
+
+@code {
+    private Prediction prediction = new();
+    private bool isSubmitting;
+    private string? errorMessage;
+
+    private async Task Submit()
+    {
+        isSubmitting = true;
+        errorMessage = null;
+
+        try
+        {
+            // TODO: set UserProfileId from authenticated user
+            prediction.UserProfileId = 1;
+            prediction.Deadline = prediction.TargetDate.AddDays(-1);
+            await PredictionService.CreatePredictionAsync(prediction);
+            NavigationManager.NavigateTo("/predictions");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+}

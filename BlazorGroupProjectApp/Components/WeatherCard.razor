@@ -1,0 +1,21 @@
+@using BlazorGroupProjectApp.Models
+
+@if (Observation != null)
+{
+    <div class="weather-card">
+        <h3>@Observation.Location</h3>
+        <p>@Observation.Description</p>
+        <p>Temp: @Observation.Temperature°F</p>
+        <p>Precipitation: @Observation.Precipitation"</p>
+        <p>Wind: @Observation.WindSpeed mph</p>
+        <p><small>As of @Observation.ObservedAt.ToLocalTime().ToShortTimeString()</small></p>
+    </div>
+}
+else
+{
+    <p>No weather data available.</p>
+}
+
+@code {
+    [Parameter] public WeatherObservation? Observation { get; set; }
+}
