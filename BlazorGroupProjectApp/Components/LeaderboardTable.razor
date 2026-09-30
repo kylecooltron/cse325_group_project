@@ -1,0 +1,32 @@
+@using BlazorGroupProjectApp.Models
+
+@if (Entries != null && Entries.Any())
+{
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Player</th>
+                <th>Points</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var entry in Entries)
+            {
+                <tr>
+                    <td>@entry.Rank</td>
+                    <td>@entry.UserProfile?.DisplayName</td>
+                    <td>@entry.Points</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No leaderboard entries yet.</p>
+}
+
+@code {
+    [Parameter] public List<LeaderboardEntry>? Entries { get; set; }
+}

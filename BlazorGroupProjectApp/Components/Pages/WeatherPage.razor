@@ -1,0 +1,25 @@
+@page "/weather"
+@inject BlazorGroupProjectApp.Services.WeatherService WeatherService
+
+<PageTitle>Current Weather - ClimateSeer</PageTitle>
+
+<h1>Current Weather</h1>
+
+@if (weather == null)
+{
+    <p>Loading weather...</p>
+}
+else
+{
+    <WeatherCard Observation="weather" />
+}
+
+@code {
+    private BlazorGroupProjectApp.Models.WeatherObservation? weather;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // TODO: get location from user profile or browser geolocation
+        weather = await WeatherService.GetCurrentWeatherAsync("Provo, UT");
+    }
+}

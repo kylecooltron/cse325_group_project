@@ -1,0 +1,31 @@
+@page "/predictions"
+@inject BlazorGroupProjectApp.Services.PredictionService PredictionService
+
+<PageTitle>My Predictions - ClimateSeer</PageTitle>
+
+<h1>My Predictions</h1>
+
+@if (predictions == null)
+{
+    <p>Loading predictions...</p>
+}
+else if (!predictions.Any())
+{
+    <p>No predictions yet. <a href="/predictions/new">Make your first prediction!</a></p>
+}
+else
+{
+    <PredictionList Predictions="predictions" />
+}
+
+<a href="/predictions/new">+ New Prediction</a>
+
+@code {
+    private List<BlazorGroupProjectApp.Models.Prediction>? predictions;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // TODO: get userProfileId from authenticated user
+        predictions = await PredictionService.GetUserPredictionsAsync(userProfileId: 1);
+    }
+}

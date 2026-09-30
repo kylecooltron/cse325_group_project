@@ -1,15 +1,23 @@
 is_global = true
 build_property.TargetFramework = net10.0
-build_property.TargetFrameworkIdentifier = .NETCoreApp
-build_property.TargetFrameworkVersion = v10.0
+build_property.TargetFramework = net10.0
+build_property.TargetPlatformMinVersion = 
 build_property.TargetPlatformMinVersion = 
 build_property.UsingMicrosoftNETSdkWeb = true
+build_property.UsingMicrosoftNETSdkWeb = true
+build_property.ProjectTypeGuids = 
 build_property.ProjectTypeGuids = 
 build_property.InvariantGlobalization = 
+build_property.InvariantGlobalization = 
+build_property.PlatformNeutralAssembly = 
 build_property.PlatformNeutralAssembly = 
 build_property.EnforceExtendedAnalyzerRules = 
-build_property.EntryPointFilePath = 
+build_property.EnforceExtendedAnalyzerRules = 
 build_property._SupportedPlatformList = Linux,macOS,Windows
+build_property._SupportedPlatformList = Linux,macOS,Windows
+build_property.TargetFrameworkIdentifier = .NETCoreApp
+build_property.TargetFrameworkVersion = v10.0
+build_property.EntryPointFilePath = 
 build_property.RootNamespace = BlazorGroupProjectApp
 build_property.RootNamespace = BlazorGroupProjectApp
 build_property.ProjectDir = C:\Users\kylej\OneDrive\Documents\_BYU\BYU_Sep_2026\.NET - CSE325\cse325_group_project\BlazorGroupProjectApp\
@@ -27,8 +35,16 @@ build_property.EnableCodeStyleSeverity =
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xBcHAucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/kylej/OneDrive/Documents/_BYU/BYU_Sep_2026/.NET - CSE325/cse325_group_project/BlazorGroupProjectApp/Components/LeaderboardTable.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xMZWFkZXJib2FyZFRhYmxlLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/kylej/OneDrive/Documents/_BYU/BYU_Sep_2026/.NET - CSE325/cse325_group_project/BlazorGroupProjectApp/Components/Pages/Counter.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xDb3VudGVyLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/kylej/OneDrive/Documents/_BYU/BYU_Sep_2026/.NET - CSE325/cse325_group_project/BlazorGroupProjectApp/Components/Pages/DashboardPage.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xEYXNoYm9hcmRQYWdlLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/kylej/OneDrive/Documents/_BYU/BYU_Sep_2026/.NET - CSE325/cse325_group_project/BlazorGroupProjectApp/Components/Pages/Error.razor]
@@ -39,20 +55,48 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xIb21lLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/kylej/OneDrive/Documents/_BYU/BYU_Sep_2026/.NET - CSE325/cse325_group_project/BlazorGroupProjectApp/Components/Pages/LeaderboardPage.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xMZWFkZXJib2FyZFBhZ2UucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/kylej/OneDrive/Documents/_BYU/BYU_Sep_2026/.NET - CSE325/cse325_group_project/BlazorGroupProjectApp/Components/Pages/NewPredictionPage.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xOZXdQcmVkaWN0aW9uUGFnZS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/kylej/OneDrive/Documents/_BYU/BYU_Sep_2026/.NET - CSE325/cse325_group_project/BlazorGroupProjectApp/Components/Pages/NotFound.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xOb3RGb3VuZC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/kylej/OneDrive/Documents/_BYU/BYU_Sep_2026/.NET - CSE325/cse325_group_project/BlazorGroupProjectApp/Components/Pages/PizzaSpecials.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xQaXp6YVNwZWNpYWxzLnJhem9y
+[C:/Users/kylej/OneDrive/Documents/_BYU/BYU_Sep_2026/.NET - CSE325/cse325_group_project/BlazorGroupProjectApp/Components/Pages/PredictionsPage.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xQcmVkaWN0aW9uc1BhZ2UucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/kylej/OneDrive/Documents/_BYU/BYU_Sep_2026/.NET - CSE325/cse325_group_project/BlazorGroupProjectApp/Components/Pages/Weather.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xXZWF0aGVyLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/kylej/OneDrive/Documents/_BYU/BYU_Sep_2026/.NET - CSE325/cse325_group_project/BlazorGroupProjectApp/Components/Pages/WeatherPage.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xXZWF0aGVyUGFnZS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/kylej/OneDrive/Documents/_BYU/BYU_Sep_2026/.NET - CSE325/cse325_group_project/BlazorGroupProjectApp/Components/PredictionForm.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQcmVkaWN0aW9uRm9ybS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/kylej/OneDrive/Documents/_BYU/BYU_Sep_2026/.NET - CSE325/cse325_group_project/BlazorGroupProjectApp/Components/PredictionList.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQcmVkaWN0aW9uTGlzdC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/kylej/OneDrive/Documents/_BYU/BYU_Sep_2026/.NET - CSE325/cse325_group_project/BlazorGroupProjectApp/Components/Routes.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xSb3V0ZXMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/kylej/OneDrive/Documents/_BYU/BYU_Sep_2026/.NET - CSE325/cse325_group_project/BlazorGroupProjectApp/Components/UserScore.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xVc2VyU2NvcmUucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/kylej/OneDrive/Documents/_BYU/BYU_Sep_2026/.NET - CSE325/cse325_group_project/BlazorGroupProjectApp/Components/WeatherCard.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xXZWF0aGVyQ2FyZC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/kylej/OneDrive/Documents/_BYU/BYU_Sep_2026/.NET - CSE325/cse325_group_project/BlazorGroupProjectApp/Components/_Imports.razor]

@@ -1,0 +1,40 @@
+@using BlazorGroupProjectApp.Models
+
+@if (Predictions != null && Predictions.Any())
+{
+    <table>
+        <thead>
+            <tr>
+                <th>Location</th>
+                <th>Target Date</th>
+                <th>Temp</th>
+                <th>Precip</th>
+                <th>Wind</th>
+                <th>Status</th>
+                <th>Points</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var p in Predictions)
+            {
+                <tr>
+                    <td>@p.Location</td>
+                    <td>@p.TargetDate.ToShortDateString()</td>
+                    <td>@p.PredictedTemperature°F</td>
+                    <td>@p.PredictedPrecipitation"</td>
+                    <td>@p.PredictedWindSpeed mph</td>
+                    <td>@p.Status</td>
+                    <td>@(p.Result?.Points.ToString() ?? "-")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No predictions to display.</p>
+}
+
+@code {
+    [Parameter] public List<Prediction>? Predictions { get; set; }
+}
