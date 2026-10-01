@@ -13,7 +13,6 @@ public class ClimateSeerContext : DbContext
     public DbSet<UserProfile> UserProfiles { get; set; }
     public DbSet<Prediction> Predictions { get; set; }
     public DbSet<PredictionResult> PredictionResults { get; set; }
-    public DbSet<LeaderboardEntry> LeaderboardEntries { get; set; }
     public DbSet<WeatherObservation> WeatherObservations { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -29,10 +28,5 @@ public class ClimateSeerContext : DbContext
             .HasOne(r => r.Prediction)
             .WithOne(p => p.Result)
             .HasForeignKey<PredictionResult>(r => r.PredictionId);
-
-        modelBuilder.Entity<LeaderboardEntry>()
-            .HasOne(e => e.UserProfile)
-            .WithMany()
-            .HasForeignKey(e => e.UserProfileId);
     }
 }
