@@ -19,9 +19,7 @@ if (builder.Environment.IsDevelopment())
             if (string.IsNullOrEmpty(trimmed) || trimmed.StartsWith('#')) continue;
             var idx = trimmed.IndexOf('=');
             if (idx < 0) continue;
-            // Convert double-underscore keys to colon-separated for IConfiguration
-            var key = trimmed[..idx].Replace("__", ":");
-            devEnvVars[key] = trimmed[(idx + 1)..];
+            devEnvVars[trimmed[..idx]] = trimmed[(idx + 1)..];
         }
         builder.Configuration.AddInMemoryCollection(devEnvVars);
     }
