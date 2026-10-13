@@ -6,6 +6,23 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Load dev.env in development (never commit this file)
+if (builder.Environment.IsDevelopment())
+{
+    var devEnvPath = Path.Combine(Directory.GetCurrentDirectory(), "dev.env");
+    if (File.Exists(devEnvPath))
+    {
+        foreach (var line in File.ReadAllLines(devEnvPath))
+        {
+            var trimmed = line.Trim();
+            if (string.IsNullOrEmpty(trimmed) || trimmed.StartsWith('#')) continue;
+            var idx = trimmed.IndexOf('=');
+            if (idx < 0) continue;
+            Environment.SetEnvironmentVariable(trimmed[..idx], trimmed[(idx + 1)..]);
+        }
+    }
+}
+
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
