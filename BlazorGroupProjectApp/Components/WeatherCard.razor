@@ -5,9 +5,9 @@
     <div class="weather-card">
         <h3>@Observation.Location</h3>
         <p>@Observation.Description</p>
-        <p>Temp: @Observation.Temperature°F</p>
+        <p>High: @Observation.TempHigh°F / Low: @Observation.TempLow°F</p>
         <p>Precipitation: @Observation.Precipitation"</p>
-        <p>Wind: @Observation.WindSpeed mph</p>
+        <p>Max Wind: @Observation.MaxWindSpeed mph</p>
         <p><small>As of @Observation.ObservedAt.ToLocalTime().ToShortTimeString()</small></p>
     </div>
 }

@@ -19,6 +19,16 @@ BlazorGroupProjectApp/
 dotnet ef migrations add Initial
 dotnet ef database update
 
+Google Client
+CSE325 Group Project
+CSE325 Project
+redirect urls? https://localhost:PORT/signin-google
+
+client id
+secret 
+-> IN appsettings.Development.json
+
+
 
 Trello Board
 https://trello.com/invite/b/6ab09291ebb9cfae05c3b296/ATTIddb48f74d2904832afd34a635af2917c7791DD2F/cse325-group-project

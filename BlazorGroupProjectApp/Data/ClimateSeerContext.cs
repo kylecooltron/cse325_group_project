@@ -1,16 +1,17 @@
 using BlazorGroupProjectApp.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace BlazorGroupProjectApp.Data;
 
-public class ClimateSeerContext : DbContext
+public class ClimateSeerContext : IdentityDbContext<IdentityUser>
 {
     public ClimateSeerContext(DbContextOptions<ClimateSeerContext> options)
         : base(options)
     {
     }
 
-    public DbSet<UserProfile> UserProfiles { get; set; }
     public DbSet<Prediction> Predictions { get; set; }
     public DbSet<PredictionResult> PredictionResults { get; set; }
     public DbSet<WeatherObservation> WeatherObservations { get; set; }
@@ -20,9 +21,9 @@ public class ClimateSeerContext : DbContext
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.Entity<Prediction>()
-            .HasOne(p => p.UserProfile)
-            .WithMany(u => u.Predictions)
-            .HasForeignKey(p => p.UserProfileId);
+            .HasOne<IdentityUser>()
+            .WithMany()
+            .HasForeignKey(p => p.UserId);
 
         modelBuilder.Entity<PredictionResult>()
             .HasOne(r => r.Prediction)

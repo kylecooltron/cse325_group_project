@@ -1,13 +1,15 @@
 using BlazorGroupProjectApp.Data;
 using BlazorGroupProjectApp.Models;
 using BlazorGroupProjectApp.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace BlazorGroupProjectApp.Controllers;
 
 [Route("api/predictions")]
 [ApiController]
+[Authorize]
 public class PredictionsController : Controller
 {
     private readonly ClimateSeerContext _db;
@@ -19,18 +21,21 @@ public class PredictionsController : Controller
         _predictionService = predictionService;
     }
 
+    private string? CurrentUserId => User.FindFirstValue(ClaimTypes.NameIdentifier);
+
     [HttpGet]
-    public async Task<ActionResult<List<Prediction>>> GetPredictions([FromQuery] int userProfileId)
+    public async Task<ActionResult<List<Prediction>>> GetPredictions()
     {
-        // TODO: replace userProfileId param with authenticated user identity
-        var predictions = await _predictionService.GetUserPredictionsAsync(userProfileId);
+        if (CurrentUserId == null) return Unauthorized();
+        var predictions = await _predictionService.GetUserPredictionsAsync(CurrentUserId);
         return Ok(predictions);
     }
 
     [HttpGet("{predictionId}")]
-    public async Task<ActionResult<Prediction>> GetPrediction(int predictionId, [FromQuery] int userProfileId)
+    public async Task<ActionResult<Prediction>> GetPrediction(int predictionId)
     {
-        var prediction = await _predictionService.GetPredictionAsync(predictionId, userProfileId);
+        if (CurrentUserId == null) return Unauthorized();
+        var prediction = await _predictionService.GetPredictionAsync(predictionId, CurrentUserId);
         if (prediction == null) return NotFound();
         return Ok(prediction);
     }
@@ -38,7 +43,8 @@ public class PredictionsController : Controller
     [HttpPost]
     public async Task<ActionResult<Prediction>> CreatePrediction([FromBody] Prediction prediction)
     {
-        // TODO: set prediction.UserProfileId from authenticated user, not request body
+        if (CurrentUserId == null) return Unauthorized();
+        prediction.UserId = CurrentUserId;
         try
         {
             var created = await _predictionService.CreatePredictionAsync(prediction);
@@ -51,9 +57,10 @@ public class PredictionsController : Controller
     }
 
     [HttpDelete("{predictionId}")]
-    public async Task<IActionResult> DeletePrediction(int predictionId, [FromQuery] int userProfileId)
+    public async Task<IActionResult> DeletePrediction(int predictionId)
     {
-        var success = await _predictionService.DeletePredictionAsync(predictionId, userProfileId);
+        if (CurrentUserId == null) return Unauthorized();
+        var success = await _predictionService.DeletePredictionAsync(predictionId, CurrentUserId);
         if (!success) return NotFound();
         return Ok();
     }

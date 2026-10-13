@@ -4,10 +4,12 @@ public class PredictionResult
 {
     public int Id { get; set; }
     public int PredictionId { get; set; }
-    public double ActualTemperature { get; set; }
+    public double ActualTempHigh { get; set; }
+    public double ActualTempLow { get; set; }
     public double ActualPrecipitation { get; set; }
-    public double ActualWindSpeed { get; set; }
-    public double TemperatureAccuracy { get; set; }
+    public double ActualMaxWindSpeed { get; set; }
+    public double TempHighAccuracy { get; set; }
+    public double TempLowAccuracy { get; set; }
     public double PrecipitationAccuracy { get; set; }
     public double WindAccuracy { get; set; }
     public int Points { get; set; }

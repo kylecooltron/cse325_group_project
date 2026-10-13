@@ -1,4 +1,8 @@
 @page "/dashboard"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@inject BlazorGroupProjectApp.Services.PredictionService PredictionService
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <PageTitle>Dashboard - ClimateSeer</PageTitle>
 
@@ -6,8 +10,96 @@
 
 <UserScore />
 
-<h2>Current Weather</h2>
-<WeatherCard />
+<div style="display:flex;gap:1.5rem;flex-wrap:wrap;margin-top:1.5rem;">
 
-<h2>Recent Predictions</h2>
-<PredictionList />
+    @* Next upcoming prediction *@
+    <div style="flex:1;min-width:260px;border:1px solid #d1d5db;border-radius:8px;padding:1.25rem;">
+        <h2 style="margin-top:0;font-size:1.1rem;color:#374151;text-transform:uppercase;letter-spacing:0.05em;">Next Upcoming Prediction</h2>
+        @if (upcoming == null)
+        {
+            <p style="color:#9ca3af;">Loading...</p>
+        }
+        else if (upcoming.Location == string.Empty)
+        {
+            <p style="color:#9ca3af;">No upcoming predictions. <a href="/predictions/new">Make one!</a></p>
+        }
+        else
+        {
+            <div style="font-weight:bold;font-size:1.05rem;">@upcoming.Location</div>
+            <div style="color:#6b7280;margin-bottom:0.75rem;">@upcoming.TargetDate.ToString("MMMM d, yyyy")</div>
+            <div style="display:flex;gap:1.5rem;flex-wrap:wrap;">
+                <div>
+                    <div style="font-size:0.75rem;color:#9ca3af;">HIGH / LOW</div>
+                    <div>@upcoming.PredictedTempHigh°F / @upcoming.PredictedTempLow°F</div>
+                </div>
+                <div>
+                    <div style="font-size:0.75rem;color:#9ca3af;">PRECIP</div>
+                    <div>@upcoming.PredictedPrecipitation"</div>
+                </div>
+                <div>
+                    <div style="font-size:0.75rem;color:#9ca3af;">MAX WIND</div>
+                    <div>@upcoming.PredictedMaxWindSpeed mph</div>
+                </div>
+            </div>
+            <div style="margin-top:0.75rem;font-weight:bold;color:#2563eb;">Worth up to: @upcoming.PotentialPoints pts</div>
+            <a href="/predictions" style="display:inline-block;margin-top:0.75rem;font-size:0.85rem;color:#6b7280;">View all predictions →</a>
+        }
+    </div>
+
+    @* Most recently scored prediction *@
+    <div style="flex:1;min-width:260px;border:1px solid #d1d5db;border-radius:8px;padding:1.25rem;">
+        <h2 style="margin-top:0;font-size:1.1rem;color:#374151;text-transform:uppercase;letter-spacing:0.05em;">Latest Result</h2>
+        @if (lastScored == null)
+        {
+            <p style="color:#9ca3af;">Loading...</p>
+        }
+        else if (lastScored.Location == string.Empty)
+        {
+            <p style="color:#9ca3af;">No scored predictions yet.</p>
+        }
+        else
+        {
+            <div style="font-weight:bold;font-size:1.05rem;">@lastScored.Location</div>
+            <div style="color:#6b7280;margin-bottom:0.75rem;">@lastScored.TargetDate.ToString("MMMM d, yyyy")</div>
+            <div style="display:flex;gap:1.5rem;flex-wrap:wrap;">
+                <div>
+                    <div style="font-size:0.75rem;color:#9ca3af;">YOUR HIGH / LOW</div>
+                    <div>@lastScored.PredictedTempHigh°F / @lastScored.PredictedTempLow°F</div>
+                </div>
+                <div>
+                    <div style="font-size:0.75rem;color:#9ca3af;">ACTUAL HIGH / LOW</div>
+                    <div>@lastScored.Result!.ActualTempHigh°F / @lastScored.Result!.ActualTempLow°F</div>
+                </div>
+            </div>
+            <div style="margin-top:0.75rem;font-size:1.4rem;font-weight:bold;color:#16a34a;">+@lastScored.Result!.Points pts</div>
+            <a href="/predictions" style="display:inline-block;margin-top:0.5rem;font-size:0.85rem;color:#6b7280;">See details →</a>
+        }
+    </div>
+
+</div>
+
+@code {
+    private BlazorGroupProjectApp.Models.Prediction? upcoming;
+    private BlazorGroupProjectApp.Models.Prediction? lastScored;
+
+    // Sentinel: non-null but empty Location = "loaded, nothing found"
+    private static readonly BlazorGroupProjectApp.Models.Prediction Empty = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var userId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null) return;
+
+        var all = await PredictionService.GetUserPredictionsAsync(userId);
+
+        upcoming = all.FirstOrDefault(p =>
+            p.Status == BlazorGroupProjectApp.Models.PredictionStatus.Pending &&
+            p.TargetDate >= DateTime.UtcNow.Date) ?? Empty;
+
+        lastScored = all
+            .Where(p => p.Status == BlazorGroupProjectApp.Models.PredictionStatus.Scored && p.Result != null)
+            .OrderByDescending(p => p.TargetDate)
+            .FirstOrDefault() ?? Empty;
+    }
+}

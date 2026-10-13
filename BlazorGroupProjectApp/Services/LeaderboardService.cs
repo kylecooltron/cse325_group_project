@@ -1,5 +1,6 @@
 using BlazorGroupProjectApp.Data;
 using BlazorGroupProjectApp.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace BlazorGroupProjectApp.Services;
@@ -21,21 +22,27 @@ public class LeaderboardService
         var scores = await _db.Predictions
             .Where(p => p.TargetDate >= startDate && p.TargetDate < endDate && p.Result != null)
             .Include(p => p.Result)
-            .Include(p => p.UserProfile)
-            .GroupBy(p => new { p.UserProfileId, p.UserProfile.DisplayName })
+            .GroupBy(p => p.UserId)
             .Select(g => new
             {
-                g.Key.UserProfileId,
-                g.Key.DisplayName,
+                UserId = g.Key,
                 Points = g.Sum(p => p.Result!.Points)
             })
             .OrderByDescending(x => x.Points)
             .ToListAsync();
 
+        var userIds = scores.Select(s => s.UserId).ToList();
+        var users = await _db.Users
+            .Where(u => userIds.Contains(u.Id))
+            .Select(u => new { u.Id, u.Email })
+            .ToListAsync();
+
+        var emailById = users.ToDictionary(u => u.Id, u => u.Email ?? u.Id);
+
         return scores.Select((s, i) => new LeaderboardEntry
         {
-            UserProfileId = s.UserProfileId,
-            DisplayName = s.DisplayName,
+            UserId = s.UserId,
+            DisplayName = emailById.GetValueOrDefault(s.UserId, s.UserId),
             Year = year,
             Month = month,
             Points = s.Points,

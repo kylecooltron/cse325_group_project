@@ -1,40 +1,119 @@
 @using BlazorGroupProjectApp.Models
+@inject BlazorGroupProjectApp.Services.WeatherService WeatherService
 
-@if (Predictions != null && Predictions.Any())
+@if (Predictions == null || !Predictions.Any())
 {
-    <table>
-        <thead>
-            <tr>
-                <th>Location</th>
-                <th>Target Date</th>
-                <th>Temp</th>
-                <th>Precip</th>
-                <th>Wind</th>
-                <th>Status</th>
-                <th>Points</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var p in Predictions)
-            {
-                <tr>
-                    <td>@p.Location</td>
-                    <td>@p.TargetDate.ToShortDateString()</td>
-                    <td>@p.PredictedTemperature°F</td>
-                    <td>@p.PredictedPrecipitation"</td>
-                    <td>@p.PredictedWindSpeed mph</td>
-                    <td>@p.Status</td>
-                    <td>@(p.Result?.Points.ToString() ?? "-")</td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    <p>No predictions yet.</p>
 }
 else
 {
-    <p>No predictions to display.</p>
+    @foreach (var p in Predictions)
+    {
+        <div style="border:1px solid #d1d5db;border-radius:8px;padding:1rem;margin-bottom:1.25rem;">
+
+            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:0.75rem;flex-wrap:wrap;gap:0.5rem;">
+                <span style="font-size:1.1rem;font-weight:bold;">@p.Location</span>
+                <span style="color:#6b7280;font-size:0.9rem;">@p.TargetDate.ToString("MMMM d, yyyy")</span>
+                <span style="font-size:0.8rem;padding:0.2rem 0.6rem;border-radius:999px;background:@StatusBg(p.Status);color:@StatusFg(p.Status);">@p.Status</span>
+            </div>
+
+            <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:stretch;">
+
+                @* Card 1 — Your prediction *@
+                <div style="flex:1;min-width:180px;border:1px solid #d1d5db;border-radius:6px;padding:0.75rem;display:flex;flex-direction:column;gap:0.3rem;">
+                    <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em;color:#6b7280;margin-bottom:0.25rem;">Your Prediction</div>
+                    <div><strong>High:</strong> @p.PredictedTempHigh°F</div>
+                    <div><strong>Low:</strong> @p.PredictedTempLow°F</div>
+                    <div><strong>Precip:</strong> @p.PredictedPrecipitation"</div>
+                    <div><strong>Max Wind:</strong> @p.PredictedMaxWindSpeed mph</div>
+                </div>
+
+                @* Card 2 — Forecast at time of prediction *@
+                <div style="flex:1;min-width:180px;border:1px solid #86efac;border-radius:6px;padding:0.75rem;color:#15803d;display:flex;flex-direction:column;gap:0.3rem;">
+                    <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.25rem;">Forecast When You Predicted</div>
+                    <div style="color:@MatchColor(p.PredictedTempHigh, p.ForecastTempHigh, "#15803d")"><strong>High:</strong> @p.ForecastTempHigh°F</div>
+                    <div style="color:@MatchColor(p.PredictedTempLow, p.ForecastTempLow, "#15803d")"><strong>Low:</strong> @p.ForecastTempLow°F</div>
+                    <div style="color:@MatchColor(p.PredictedPrecipitation, p.ForecastPrecipitation, "#15803d")"><strong>Precip:</strong> @p.ForecastPrecipitation"</div>
+                    <div style="color:@MatchColor(p.PredictedMaxWindSpeed, p.ForecastMaxWindSpeed, "#15803d")"><strong>Max Wind:</strong> @p.ForecastMaxWindSpeed mph</div>
+                </div>
+
+                @* Card 3 — Current forecast *@
+                <div style="flex:1;min-width:180px;border:1px solid #bfdbfe;border-radius:6px;padding:0.75rem;display:flex;flex-direction:column;gap:0.3rem;">
+                    <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em;color:#1d4ed8;margin-bottom:0.25rem;">Current Forecast</div>
+                    @if (currentForecasts.TryGetValue(p.Id, out var cf))
+                    {
+                        if (cf == null)
+                        {
+                            <span style="color:#9ca3af;">Unavailable</span>
+                        }
+                        else
+                        {
+                            <div style="color:#1e40af;"><strong>High:</strong> @cf.TempHigh°F</div>
+                            <div style="color:#1e40af;"><strong>Low:</strong> @cf.TempLow°F</div>
+                            <div style="color:#1e40af;"><strong>Precip:</strong> @cf.Precipitation"</div>
+                            <div style="color:#1e40af;"><strong>Max Wind:</strong> @cf.MaxWindSpeed mph</div>
+                        }
+                    }
+                    else
+                    {
+                        <div style="display:flex;align-items:center;justify-content:center;flex:1;">
+                            <button @onclick="() => LoadCurrentForecast(p)" disabled="@loadingIds.Contains(p.Id)">
+                                @(loadingIds.Contains(p.Id) ? "Loading..." : "Load Current Forecast")
+                            </button>
+                        </div>
+                    }
+                </div>
+
+            </div>
+
+            @* Points — centered below all cards *@
+            <div style="text-align:center;margin-top:0.75rem;font-weight:bold;font-size:1rem;">
+                @if (p.Result != null)
+                {
+                    <span style="color:#16a34a;">Earned: @p.Result.Points pts</span>
+                }
+                else
+                {
+                    <span style="color:#2563eb;">Worth up to: @p.PotentialPoints pts</span>
+                }
+            </div>
+
+        </div>
+    }
 }
 
 @code {
     [Parameter] public List<Prediction>? Predictions { get; set; }
+
+    private Dictionary<int, WeatherObservation?> currentForecasts = new();
+    private HashSet<int> loadingIds = new();
+
+    private async Task LoadCurrentForecast(Prediction p)
+    {
+        loadingIds.Add(p.Id);
+        StateHasChanged();
+
+        var obs = await WeatherService.GetForecastAsync(p.Location, p.TargetDate);
+        currentForecasts[p.Id] = obs;
+        loadingIds.Remove(p.Id);
+        StateHasChanged();
+    }
+
+    // Returns transparent when predicted value matches forecast value (field was not changed)
+    private static string MatchColor(double predicted, double forecast, string activeColor) =>
+        predicted == forecast ? "transparent" : activeColor;
+
+    private static string StatusBg(PredictionStatus s) => s switch
+    {
+        PredictionStatus.Scored    => "#dcfce7",
+        PredictionStatus.Evaluated => "#fef9c3",
+        _                          => "#f3f4f6"
+    };
+
+    private static string StatusFg(PredictionStatus s) => s switch
+    {
+        PredictionStatus.Scored    => "#15803d",
+        PredictionStatus.Evaluated => "#854d0e",
+        _                          => "#374151"
+    };
 }

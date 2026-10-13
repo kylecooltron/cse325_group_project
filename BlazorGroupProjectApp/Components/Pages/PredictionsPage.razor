@@ -1,9 +1,15 @@
 @page "/predictions"
+@attribute [Authorize]
+@rendermode InteractiveServer
 @inject BlazorGroupProjectApp.Services.PredictionService PredictionService
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <PageTitle>My Predictions - ClimateSeer</PageTitle>
 
-<h1>My Predictions</h1>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;flex-wrap:wrap;gap:0.5rem;">
+    <h1 style="margin:0;">My Predictions</h1>
+    <a href="/predictions/new" style="padding:0.4rem 1rem;background:#2563eb;color:white;border-radius:6px;text-decoration:none;font-weight:bold;">+ New Prediction</a>
+</div>
 
 @if (predictions == null)
 {
@@ -11,21 +17,21 @@
 }
 else if (!predictions.Any())
 {
-    <p>No predictions yet. <a href="/predictions/new">Make your first prediction!</a></p>
+    <p>No predictions yet. Make your first one!</p>
 }
 else
 {
     <PredictionList Predictions="predictions" />
 }
 
-<a href="/predictions/new">+ New Prediction</a>
-
 @code {
     private List<BlazorGroupProjectApp.Models.Prediction>? predictions;
 
     protected override async Task OnInitializedAsync()
     {
-        // TODO: get userProfileId from authenticated user
-        predictions = await PredictionService.GetUserPredictionsAsync(userProfileId: 1);
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var userId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (userId != null)
+            predictions = await PredictionService.GetUserPredictionsAsync(userId);
     }
 }

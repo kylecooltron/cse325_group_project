@@ -5,9 +5,17 @@
 <h1>ClimateSeer</h1>
 <p>Predict the weather. Compete for glory.</p>
 
-<div>
-    <a href="/weather">View Current Weather</a> |
-    <a href="/predictions">My Predictions</a> |
-    <a href="/leaderboard">Leaderboard</a> |
-    <a href="/dashboard">Dashboard</a>
-</div>
+<AuthorizeView>
+    <Authorized>
+        <div>
+            <a href="/predictions">My Predictions</a> |
+            <a href="/leaderboard">Leaderboard</a> |
+            <a href="/dashboard">Dashboard</a>
+        </div>
+    </Authorized>
+    <NotAuthorized>
+        <div>
+            <a href="/auth/login">Sign in</a> to get started
+        </div>
+    </NotAuthorized>
+</AuthorizeView>

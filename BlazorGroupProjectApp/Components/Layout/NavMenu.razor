@@ -13,25 +13,38 @@
                 Home
             </NavLink>
         </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="dashboard">
-                Dashboard
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="weather">
-                Weather
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="predictions">
-                My Predictions
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="leaderboard">
-                Leaderboard
-            </NavLink>
-        </div>
+        <AuthorizeView>
+            <Authorized>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="dashboard">
+                        Dashboard
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="leaderboard">
+                        Leaderboard
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="predictions">
+                        My Predictions
+                    </NavLink>
+                </div>
+                <div style="margin-top:auto;padding:1rem 1rem 0.5rem;border-top:1px solid rgba(255,255,255,0.15);">
+                    <div style="color:white;font-weight:600;margin-bottom:0.5rem;">@context.User.FindFirst(System.Security.Claims.ClaimTypes.GivenName)?.Value</div>
+                    <form method="post" action="/auth/logout">
+                        <AntiforgeryToken />
+                        <button type="submit" class="nav-link btn btn-link text-light" style="padding:0;font-size:0.85rem;opacity:0.7;">Sign out</button>
+                    </form>
+                </div>
+            </Authorized>
+            <NotAuthorized>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="auth/login">
+                        Sign in
+                    </NavLink>
+                </div>
+            </NotAuthorized>
+        </AuthorizeView>
     </nav>
 </div>

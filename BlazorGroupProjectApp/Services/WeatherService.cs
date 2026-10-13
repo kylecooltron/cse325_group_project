@@ -17,6 +17,55 @@ public class WeatherService
     public WeatherService(HttpClient httpClient, ILogger<WeatherService> logger)
         => (_httpClient, _logger) = (httpClient, logger);
 
+    public async Task<WeatherObservation?> GetForecastAsync(string location, DateTime date)
+    {
+        var coords = await GeocodeAsync(location);
+        if (coords == null) return null;
+        return await GetForecastAsync(coords.Value.Lat, coords.Value.Lon, date);
+    }
+
+    public async Task<WeatherObservation?> GetForecastAsync(double lat, double lon, DateTime date)
+    {
+        var dateStr = date.ToString("yyyy-MM-dd");
+        // open-meteo forecast API covers up to 16 days; archive covers past dates
+        var isPast = date.Date < DateTime.UtcNow.Date;
+        var baseUrl = isPast
+            ? $"https://archive-api.open-meteo.com/v1/archive"
+            : $"https://api.open-meteo.com/v1/forecast";
+
+        var url = $"{baseUrl}?latitude={lat}&longitude={lon}" +
+                  $"&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max,weather_code" +
+                  $"&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch" +
+                  $"&start_date={dateStr}&end_date={dateStr}&timezone=auto";
+
+        try
+        {
+            var response = await _httpClient.GetFromJsonAsync<OpenMeteoForecastResponse>(url, JsonOptions);
+            if (response?.Daily == null) return null;
+
+            var maxTemp = response.Daily.Temperature2mMax?.FirstOrDefault() ?? 0;
+            var minTemp = response.Daily.Temperature2mMin?.FirstOrDefault() ?? 0;
+            var precip = response.Daily.PrecipitationSum?.FirstOrDefault() ?? 0;
+            var wind = response.Daily.WindSpeed10mMax?.FirstOrDefault() ?? 0;
+            var code = (int)(response.Daily.WeatherCode?.FirstOrDefault() ?? 0);
+
+            return new WeatherObservation
+            {
+                ObservedAt = date,
+                TempHigh = Math.Round(maxTemp, 1),
+                TempLow = Math.Round(minTemp, 1),
+                Precipitation = Math.Round(precip, 2),
+                MaxWindSpeed = Math.Round(wind, 1),
+                Description = WmoCodeToDescription(code)
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to fetch forecast for ({Lat},{Lon}) on {Date}", lat, lon, date);
+            return null;
+        }
+    }
+
     public async Task<WeatherObservation?> GetCurrentWeatherAsync(string location)
     {
         var coords = await GeocodeAsync(location);
@@ -43,9 +92,10 @@ public class WeatherService
             {
                 Location = location,
                 ObservedAt = DateTime.UtcNow,
-                Temperature = Math.Round((maxTemp + minTemp) / 2, 1),
+                TempHigh = Math.Round(maxTemp, 1),
+                TempLow = Math.Round(minTemp, 1),
                 Precipitation = Math.Round(precip, 2),
-                WindSpeed = Math.Round(wind, 1),
+                MaxWindSpeed = Math.Round(wind, 1),
                 Description = WmoCodeToDescription(code)
             };
         }
@@ -83,9 +133,10 @@ public class WeatherService
             {
                 Location = location,
                 ObservedAt = date,
-                Temperature = Math.Round((maxTemp + minTemp) / 2, 1),
+                TempHigh = Math.Round(maxTemp, 1),
+                TempLow = Math.Round(minTemp, 1),
                 Precipitation = Math.Round(precip, 2),
-                WindSpeed = Math.Round(wind, 1),
+                MaxWindSpeed = Math.Round(wind, 1),
                 Description = WmoCodeToDescription(code)
             };
         }

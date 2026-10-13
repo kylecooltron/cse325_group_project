@@ -1,6 +1,8 @@
 @using BlazorGroupProjectApp.Models
 @inject BlazorGroupProjectApp.Services.PredictionService PredictionService
+@inject BlazorGroupProjectApp.Services.WeatherService WeatherService
 @inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <h2>Make a Prediction</h2>
 
@@ -10,44 +12,221 @@
 }
 
 <div>
-    <label>Location</label>
-    <input @bind="prediction.Location" />
-</div>
-<div>
-    <label>Target Date</label>
-    <input type="date" @bind="prediction.TargetDate" />
-</div>
-<div>
-    <label>Predicted Temperature (°F)</label>
-    <input type="number" @bind="prediction.PredictedTemperature" />
-</div>
-<div>
-    <label>Predicted Precipitation (inches)</label>
-    <input type="number" step="0.01" @bind="prediction.PredictedPrecipitation" />
-</div>
-<div>
-    <label>Predicted Wind Speed (mph)</label>
-    <input type="number" @bind="prediction.PredictedWindSpeed" />
+    <label>Location — click a city on the map</label>
+    <CityMapPicker OnCitySelected="HandleCitySelected" />
 </div>
 
-<button @onclick="Submit" disabled="@isSubmitting">
-    @(isSubmitting ? "Submitting..." : "Submit Prediction")
-</button>
+<div style="margin:0.75rem 0;">
+    <label>Target Date</label>
+    <input type="date"
+           min="@minDate"
+           max="@maxDate"
+           value="@prediction.TargetDate.ToString("yyyy-MM-dd")"
+           @onchange="HandleDateChange" />
+</div>
+
+<div style="display:flex;gap:1.5rem;align-items:stretch;flex-wrap:wrap;">
+
+    <div style="flex:1;min-width:220px;border:2px solid green;border-radius:6px;padding:1rem;color:green;display:flex;flex-direction:column;gap:0.4rem;">
+        @if (isForecastLoading)
+        {
+            <p>Loading...</p>
+        }
+        else if (forecast != null)
+        {
+            <p style="margin:0;font-weight:bold;">@forecast.Description</p>
+            <p style="margin:0;">High: @forecast.TempHigh°F &nbsp; Low: @forecast.TempLow°F</p>
+            <p style="margin:0;">Precipitation: @forecast.Precipitation"</p>
+            <p style="margin:0;">Max Wind: @forecast.MaxWindSpeed mph</p>
+        }
+        else if (!string.IsNullOrEmpty(prediction.Location))
+        {
+            <p style="margin:0;">No forecast available.</p>
+        }
+        else
+        {
+            <p style="margin:0;opacity:0.6;">Select a city to see the forecast.</p>
+        }
+        <p style="margin-top:auto;margin-bottom:0;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em;">
+            Actual Weather Forecast
+        </p>
+    </div>
+
+    <div style="flex:1;min-width:220px;display:flex;flex-direction:column;gap:0.6rem;">
+        <div>
+            <label>Predicted High Temp (°F)</label>
+            <input type="number" @bind="prediction.PredictedTempHigh" @bind:event="oninput" disabled="@isForecastLoading" style="width:100%;box-sizing:border-box;" />
+        </div>
+        <div>
+            <label>Predicted Low Temp (°F)</label>
+            <input type="number" @bind="prediction.PredictedTempLow" @bind:event="oninput" disabled="@isForecastLoading" style="width:100%;box-sizing:border-box;" />
+        </div>
+        <div>
+            <label>Predicted Precipitation (inches)</label>
+            <input type="number" step="0.01" @bind="prediction.PredictedPrecipitation" @bind:event="oninput" disabled="@isForecastLoading" style="width:100%;box-sizing:border-box;" />
+        </div>
+        <div>
+            <label>Predicted Max Wind Speed (mph)</label>
+            <input type="number" @bind="prediction.PredictedMaxWindSpeed" @bind:event="oninput" disabled="@isForecastLoading" style="width:100%;box-sizing:border-box;" />
+        </div>
+
+        @if (forecast != null && !isForecastLoading)
+        {
+            <div style="margin-top:auto;padding:0.6rem 0.8rem;background:#f0fdf4;border:1px solid #86efac;border-radius:6px;text-align:center;">
+                @if (PreviewPotentialPoints > 0)
+                {
+                    <span style="font-size:1.1rem;font-weight:bold;color:#16a34a;">
+                        If you're right: +@PreviewPotentialPoints pts
+                    </span>
+                }
+                else
+                {
+                    <span style="color:#6b7280;font-size:0.9rem;">
+                        Change at least one field to earn points.
+                    </span>
+                }
+            </div>
+        }
+    </div>
+
+</div>
+
+<div style="margin-top:1rem;">
+    <button @onclick="Submit" disabled="@(isSubmitting || isForecastLoading || forecast == null)">
+        @(isSubmitting ? "Submitting..." : "Submit Prediction")
+    </button>
+</div>
 
 @code {
     private Prediction prediction = new();
     private bool isSubmitting;
     private string? errorMessage;
+    private WeatherObservation? forecast;
+    private bool isForecastLoading;
+    private double? selectedLat;
+    private double? selectedLon;
+
+    private static DateTime MinDateTime => DateTime.UtcNow.AddHours(48);
+    private static DateTime MaxDateTime => DateTime.UtcNow.AddDays(14);
+    private string minDate => MinDateTime.ToString("yyyy-MM-dd");
+    private string maxDate => MaxDateTime.ToString("yyyy-MM-dd");
+
+    // Mirror of ScoringService constants for client-side preview only
+    private const double MaxTempDiff   = 30.0;
+    private const double MaxPrecipDiff = 2.0;
+    private const double MaxWindDiff   = 30.0;
+    private const double MinTempDiff   = 1.0;
+    private const double MinPrecipDiff = 0.05;
+    private const double MinWindDiff   = 1.0;
+
+    private int PreviewPotentialPoints
+    {
+        get
+        {
+            if (forecast is null) return 0;
+
+            var daysOut = (prediction.TargetDate.Date - DateTime.UtcNow.Date).TotalDays;
+
+            var boldness =
+                (Boldness(prediction.PredictedTempHigh,        forecast.TempHigh,     MaxTempDiff) +
+                 Boldness(prediction.PredictedTempLow,         forecast.TempLow,      MaxTempDiff) +
+                 Boldness(prediction.PredictedPrecipitation,   forecast.Precipitation, MaxPrecipDiff) +
+                 Boldness(prediction.PredictedMaxWindSpeed,    forecast.MaxWindSpeed,  MaxWindDiff)) / 4.0;
+
+            var timeMult = Math.Pow(2.0, daysOut / 7.0);
+            var pts = (int)Math.Round(boldness * 100 * timeMult / 2.0);
+
+            // Return 0 if not bold enough (mirrors IsWorthSubmitting)
+            bool worthIt =
+                Math.Abs(prediction.PredictedTempHigh      - forecast.TempHigh)      >= MinTempDiff   ||
+                Math.Abs(prediction.PredictedTempLow       - forecast.TempLow)       >= MinTempDiff   ||
+                Math.Abs(prediction.PredictedPrecipitation - forecast.Precipitation) >= MinPrecipDiff ||
+                Math.Abs(prediction.PredictedMaxWindSpeed  - forecast.MaxWindSpeed)  >= MinWindDiff;
+
+            return worthIt ? pts : 0;
+        }
+    }
+
+    private static double Boldness(double predicted, double forecastVal, double maxDiff)
+    {
+        var diff = Math.Abs(predicted - forecastVal);
+        var normalized = Math.Min(diff / maxDiff, 1.0);
+        return Math.Pow(normalized, 0.5);
+    }
+
+    protected override void OnInitialized()
+    {
+        prediction.TargetDate = MinDateTime.Date;
+    }
+
+    private async Task HandleCitySelected(CityMapPicker.CitySelection city)
+    {
+        prediction.Location = city.Name;
+        selectedLat = city.Lat;
+        selectedLon = city.Lon;
+        await FetchForecast();
+    }
+
+    private async Task HandleDateChange(ChangeEventArgs e)
+    {
+        if (DateTime.TryParse(e.Value?.ToString(), out var parsed))
+        {
+            prediction.TargetDate = parsed;
+            if (selectedLat.HasValue)
+                await FetchForecast();
+        }
+    }
+
+    private async Task FetchForecast()
+    {
+        if (!selectedLat.HasValue || !selectedLon.HasValue) return;
+
+        isForecastLoading = true;
+        forecast = null;
+        StateHasChanged();
+
+        forecast = await WeatherService.GetForecastAsync(selectedLat.Value, selectedLon.Value, prediction.TargetDate);
+        isForecastLoading = false;
+
+        if (forecast != null)
+        {
+            prediction.PredictedTempHigh      = forecast.TempHigh;
+            prediction.PredictedTempLow       = forecast.TempLow;
+            prediction.PredictedPrecipitation = forecast.Precipitation;
+            prediction.PredictedMaxWindSpeed  = forecast.MaxWindSpeed;
+        }
+
+        StateHasChanged();
+    }
 
     private async Task Submit()
     {
+        if (string.IsNullOrEmpty(prediction.Location))
+        {
+            errorMessage = "Please select a city on the map.";
+            return;
+        }
+
+        if (prediction.TargetDate < MinDateTime.Date)
+        {
+            errorMessage = "Target date must be at least 48 hours in the future.";
+            return;
+        }
+
         isSubmitting = true;
         errorMessage = null;
 
         try
         {
-            // TODO: set UserProfileId from authenticated user
-            prediction.UserProfileId = 1;
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var userId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                errorMessage = "You must be logged in to submit a prediction.";
+                return;
+            }
+
+            prediction.UserId = userId;
             prediction.Deadline = prediction.TargetDate.AddDays(-1);
             await PredictionService.CreatePredictionAsync(prediction);
             NavigationManager.NavigateTo("/predictions");
