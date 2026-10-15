@@ -1,0 +1,79 @@
+.date-row {
+    margin: 0.75rem 0;
+}
+
+.form-columns {
+    display: flex;
+    gap: 1.5rem;
+    align-items: stretch;
+    flex-wrap: wrap;
+}
+
+.forecast-panel {
+    flex: 1;
+    min-width: 220px;
+    border: 2px solid green;
+    border-radius: 6px;
+    padding: 1rem;
+    color: green;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.forecast-panel p {
+    margin: 0;
+}
+
+.forecast-panel .forecast-placeholder {
+    opacity: 0.6;
+}
+
+.forecast-panel .forecast-label {
+    margin-top: auto;
+    margin-bottom: 0;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.inputs-panel {
+    flex: 1;
+    min-width: 220px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.inputs-panel input {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.points-preview {
+    margin-top: auto;
+    padding: 0.6rem 0.8rem;
+    background: #f0fdf4;
+    border: 1px solid #86efac;
+    border-radius: 6px;
+    text-align: center;
+}
+
+.points-preview .points-value {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #16a34a;
+}
+
+.points-preview .points-hint {
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+
+.submit-row {
+    margin-top: 1rem;
+}
+
+.error-message {
+    color: red;
+}

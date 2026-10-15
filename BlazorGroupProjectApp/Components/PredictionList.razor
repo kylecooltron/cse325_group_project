@@ -9,19 +9,19 @@ else
 {
     @foreach (var p in Predictions)
     {
-        <div style="border:1px solid #d1d5db;border-radius:8px;padding:1rem;margin-bottom:1.25rem;">
+        <div class="prediction-item">
 
-            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:0.75rem;flex-wrap:wrap;gap:0.5rem;">
-                <span style="font-size:1.1rem;font-weight:bold;">@p.Location</span>
-                <span style="color:#6b7280;font-size:0.9rem;">@p.TargetDate.ToString("MMMM d, yyyy")</span>
-                <span style="font-size:0.8rem;padding:0.2rem 0.6rem;border-radius:999px;background:@StatusBg(p.Status);color:@StatusFg(p.Status);">@p.Status</span>
+            <div class="prediction-header">
+                <span class="prediction-location">@p.Location</span>
+                <span class="prediction-date">@p.TargetDate.ToString("MMMM d, yyyy")</span>
+                <span class="status-badge" style="background:@StatusBg(p.Status);color:@StatusFg(p.Status);">@p.Status</span>
             </div>
 
-            <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:stretch;">
+            <div class="cards-row">
 
                 @* Card 1 — Your prediction *@
-                <div style="flex:1;min-width:180px;border:1px solid #d1d5db;border-radius:6px;padding:0.75rem;display:flex;flex-direction:column;gap:0.3rem;">
-                    <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em;color:#6b7280;margin-bottom:0.25rem;">Your Prediction</div>
+                <div class="card card-your-prediction">
+                    <div class="card-label">Your Prediction</div>
                     <div><strong>High:</strong> @p.PredictedTempHigh°F</div>
                     <div><strong>Low:</strong> @p.PredictedTempLow°F</div>
                     <div><strong>Precip:</strong> @p.PredictedPrecipitation"</div>
@@ -29,8 +29,8 @@ else
                 </div>
 
                 @* Card 2 — Forecast at time of prediction *@
-                <div style="flex:1;min-width:180px;border:1px solid #86efac;border-radius:6px;padding:0.75rem;color:#15803d;display:flex;flex-direction:column;gap:0.3rem;">
-                    <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.25rem;">Forecast When You Predicted</div>
+                <div class="card card-forecast">
+                    <div class="card-label">Forecast When You Predicted</div>
                     <div style="color:@MatchColor(p.PredictedTempHigh, p.ForecastTempHigh, "#15803d")"><strong>High:</strong> @p.ForecastTempHigh°F</div>
                     <div style="color:@MatchColor(p.PredictedTempLow, p.ForecastTempLow, "#15803d")"><strong>Low:</strong> @p.ForecastTempLow°F</div>
                     <div style="color:@MatchColor(p.PredictedPrecipitation, p.ForecastPrecipitation, "#15803d")"><strong>Precip:</strong> @p.ForecastPrecipitation"</div>
@@ -38,8 +38,8 @@ else
                 </div>
 
                 @* Card 3 — Current forecast *@
-                <div style="flex:1;min-width:180px;border:1px solid #bfdbfe;border-radius:6px;padding:0.75rem;display:flex;flex-direction:column;gap:0.3rem;">
-                    <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em;color:#1d4ed8;margin-bottom:0.25rem;">Current Forecast</div>
+                <div class="card card-current">
+                    <div class="card-label">Current Forecast</div>
                     @if (currentForecasts.TryGetValue(p.Id, out var cf))
                     {
                         if (cf == null)
@@ -48,15 +48,15 @@ else
                         }
                         else
                         {
-                            <div style="color:#1e40af;"><strong>High:</strong> @cf.TempHigh°F</div>
-                            <div style="color:#1e40af;"><strong>Low:</strong> @cf.TempLow°F</div>
-                            <div style="color:#1e40af;"><strong>Precip:</strong> @cf.Precipitation"</div>
-                            <div style="color:#1e40af;"><strong>Max Wind:</strong> @cf.MaxWindSpeed mph</div>
+                            <div class="card-current-data"><strong>High:</strong> @cf.TempHigh°F</div>
+                            <div class="card-current-data"><strong>Low:</strong> @cf.TempLow°F</div>
+                            <div class="card-current-data"><strong>Precip:</strong> @cf.Precipitation"</div>
+                            <div class="card-current-data"><strong>Max Wind:</strong> @cf.MaxWindSpeed mph</div>
                         }
                     }
                     else
                     {
-                        <div style="display:flex;align-items:center;justify-content:center;flex:1;">
+                        <div class="load-forecast-wrapper">
                             <button @onclick="() => LoadCurrentForecast(p)" disabled="@loadingIds.Contains(p.Id)">
                                 @(loadingIds.Contains(p.Id) ? "Loading..." : "Load Current Forecast")
                             </button>
@@ -67,14 +67,14 @@ else
             </div>
 
             @* Points — centered below all cards *@
-            <div style="text-align:center;margin-top:0.75rem;font-weight:bold;font-size:1rem;">
+            <div class="prediction-points">
                 @if (p.Result != null)
                 {
-                    <span style="color:#16a34a;">Earned: @p.Result.Points pts</span>
+                    <span class="points-earned">Earned: @p.Result.Points pts</span>
                 }
                 else
                 {
-                    <span style="color:#2563eb;">Worth up to: @p.PotentialPoints pts</span>
+                    <span class="points-potential">Worth up to: @p.PotentialPoints pts</span>
                 }
             </div>
 

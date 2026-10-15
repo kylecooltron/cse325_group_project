@@ -1,0 +1,67 @@
+.dashboard-cards {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-top: 1.5rem;
+}
+
+.dashboard-card {
+    flex: 1;
+    min-width: 260px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 1.25rem;
+}
+
+.dashboard-card h2 {
+    margin-top: 0;
+    font-size: 1.1rem;
+    color: #374151;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.card-location {
+    font-weight: bold;
+    font-size: 1.05rem;
+}
+
+.card-date {
+    color: #6b7280;
+    margin-bottom: 0.75rem;
+}
+
+.card-stats {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: #9ca3af;
+}
+
+.card-points {
+    margin-top: 0.75rem;
+    font-weight: bold;
+    color: #2563eb;
+}
+
+.card-points-earned {
+    margin-top: 0.75rem;
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: #16a34a;
+}
+
+.card-link {
+    display: inline-block;
+    margin-top: 0.75rem;
+    font-size: 0.85rem;
+    color: #6b7280;
+}
+
+.card-empty {
+    color: #9ca3af;
+}

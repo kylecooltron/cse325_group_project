@@ -30,11 +30,11 @@
                         My Predictions
                     </NavLink>
                 </div>
-                <div style="margin-top:auto;padding:1rem 1rem 0.5rem;border-top:1px solid rgba(255,255,255,0.15);">
-                    <div style="color:white;font-weight:600;margin-bottom:0.5rem;">@context.User.FindFirst(System.Security.Claims.ClaimTypes.GivenName)?.Value</div>
+                <div class="nav-user-section">
+                    <div class="nav-username">@context.User.FindFirst(System.Security.Claims.ClaimTypes.GivenName)?.Value</div>
                     <form method="post" action="/auth/logout">
                         <AntiforgeryToken />
-                        <button type="submit" class="nav-link btn btn-link text-light" style="padding:0;font-size:0.85rem;opacity:0.7;">Sign out</button>
+                        <button type="submit" class="nav-link btn btn-link text-light nav-signout">Sign out</button>
                     </form>
                 </div>
             </Authorized>

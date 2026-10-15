@@ -103,3 +103,21 @@
         overflow-y: auto;
     }
 }
+
+.nav-user-section {
+    margin-top: auto;
+    padding: 1rem 1rem 0.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.nav-username {
+    color: white;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.nav-signout {
+    padding: 0;
+    font-size: 0.85rem;
+    opacity: 0.7;
+}
