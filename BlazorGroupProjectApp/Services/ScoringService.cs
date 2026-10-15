@@ -42,20 +42,16 @@ public class ScoringService
     {
         var daysOut = (prediction.TargetDate.Date - DateTime.UtcNow.Date).TotalDays;
 
-        // Each field: how bold is this prediction? (0–1, exponential curve)
-        var tempHighBoldness = Boldness(prediction.PredictedTempHigh, prediction.ForecastTempHigh, MaxTempDiff);
-        var tempLowBoldness  = Boldness(prediction.PredictedTempLow,  prediction.ForecastTempLow,  MaxTempDiff);
-        var precipBoldness   = Boldness(prediction.PredictedPrecipitation, prediction.ForecastPrecipitation, MaxPrecipDiff);
-        var windBoldness     = Boldness(prediction.PredictedMaxWindSpeed,  prediction.ForecastMaxWindSpeed,  MaxWindDiff);
+        // How bold is each field? (0–1 linear)
+        var avgBoldness =
+            (Boldness(prediction.PredictedTempHigh, prediction.ForecastTempHigh, MaxTempDiff) +
+             Boldness(prediction.PredictedTempLow,  prediction.ForecastTempLow,  MaxTempDiff) +
+             Boldness(prediction.PredictedPrecipitation, prediction.ForecastPrecipitation, MaxPrecipDiff) +
+             Boldness(prediction.PredictedMaxWindSpeed,  prediction.ForecastMaxWindSpeed,  MaxWindDiff)) / 4.0;
 
-        var avgBoldness = (tempHighBoldness + tempLowBoldness + precipBoldness + windBoldness) / 4.0;
-
-        // Time multiplier: doubles every 7 days out (exponential)
-        var timeMult = Math.Pow(2.0, daysOut / 7.0);
-
-        // Base scale of 100 points for a maximally bold prediction made 7 days out
-        // timeMult at 7 days = 2, so divide by 2 to anchor 100 pts there
-        prediction.PotentialPoints = (int)Math.Round(avgBoldness * 100 * timeMult / 2.0);
+        // 50 base points + 2 bonus points per day out, scaled by boldness
+        var basePoints = 50 + (int)(daysOut * 2);
+        prediction.PotentialPoints = (int)Math.Round(avgBoldness * basePoints);
     }
 
     /// <summary>
@@ -94,35 +90,22 @@ public class ScoringService
         await Task.CompletedTask;
     }
 
-    // How bold is this prediction vs the forecast? (0 = same as forecast, 1 = max disagreement)
-    // Exponential curve: small deviations earn little, large deviations earn a lot.
+    // How bold is this prediction vs the forecast? Linear: 0 = same as forecast, 1 = max disagreement.
     private static double Boldness(double predicted, double forecast, double maxDiff)
     {
         var diff = Math.Abs(predicted - forecast);
-        var normalized = Math.Min(diff / maxDiff, 1.0);
-        // x^0.5 gives a concave-up curve: bold disagreements earn disproportionately more
-        return Math.Pow(normalized, 0.5);
+        return Math.Min(diff / maxDiff, 1.0);
     }
 
     // What fraction of potential points does this field earn?
-    // 1.0 = actual matched your prediction perfectly; 0.0 = actual matched the forecast perfectly.
-    // Uses an exponential decay so being close to right earns most of the value.
+    // 1.0 = actual matched your prediction exactly; 0.0 = actual matched the forecast.
     private static double EarningRate(double predicted, double forecast, double actual)
     {
         var totalDisagreement = Math.Abs(predicted - forecast);
-        if (totalDisagreement < 1e-9) return 0.0; // prediction was same as forecast — nothing to earn
+        if (totalDisagreement < 1e-9) return 0.0;
 
-        // How far did actual end up from the original forecast, in the direction of your prediction?
-        // Positive = actual moved toward your prediction; negative = moved away
-        var actualDiff = actual - forecast;
-        var predictedDiff = predicted - forecast;
-
-        // Project actual movement onto prediction direction (0 = stayed at forecast, 1 = hit your prediction exactly)
-        var alignment = actualDiff / predictedDiff;
-        alignment = Math.Max(0.0, Math.Min(1.0, alignment));
-
-        // Exponential reward: you have to be mostly right to earn most of the points
-        // alignment^2 means 50% of the way earns only 25% of points
-        return Math.Pow(alignment, 2.0);
+        // How far did actual move from the forecast toward your prediction? (clamped 0–1)
+        var alignment = (actual - forecast) / (predicted - forecast);
+        return Math.Max(0.0, Math.Min(1.0, alignment));
     }
 }

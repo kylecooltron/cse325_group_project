@@ -1,6 +1,7 @@
 @using BlazorGroupProjectApp.Models
 @inject BlazorGroupProjectApp.Services.PredictionService PredictionService
 @inject BlazorGroupProjectApp.Services.WeatherService WeatherService
+@inject BlazorGroupProjectApp.Services.ScoringService ScoringService
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
@@ -28,7 +29,7 @@
 <div style="display:flex;gap:1.5rem;align-items:stretch;flex-wrap:wrap;">
 
     <div style="flex:1;min-width:220px;border:2px solid green;border-radius:6px;padding:1rem;color:green;display:flex;flex-direction:column;gap:0.4rem;">
-        @if (isForecastLoading)
+        @if (busy && forecast == null)
         {
             <p>Loading...</p>
         }
@@ -55,22 +56,22 @@
     <div style="flex:1;min-width:220px;display:flex;flex-direction:column;gap:0.6rem;">
         <div>
             <label>Predicted High Temp (°F)</label>
-            <input type="number" @bind="prediction.PredictedTempHigh" @bind:event="oninput" disabled="@isForecastLoading" style="width:100%;box-sizing:border-box;" />
+            <input type="number" @bind="prediction.PredictedTempHigh" @bind:event="oninput" disabled="@busy" style="width:100%;box-sizing:border-box;" />
         </div>
         <div>
             <label>Predicted Low Temp (°F)</label>
-            <input type="number" @bind="prediction.PredictedTempLow" @bind:event="oninput" disabled="@isForecastLoading" style="width:100%;box-sizing:border-box;" />
+            <input type="number" @bind="prediction.PredictedTempLow" @bind:event="oninput" disabled="@busy" style="width:100%;box-sizing:border-box;" />
         </div>
         <div>
             <label>Predicted Precipitation (inches)</label>
-            <input type="number" step="0.01" @bind="prediction.PredictedPrecipitation" @bind:event="oninput" disabled="@isForecastLoading" style="width:100%;box-sizing:border-box;" />
+            <input type="number" step="0.01" @bind="prediction.PredictedPrecipitation" @bind:event="oninput" disabled="@busy" style="width:100%;box-sizing:border-box;" />
         </div>
         <div>
             <label>Predicted Max Wind Speed (mph)</label>
-            <input type="number" @bind="prediction.PredictedMaxWindSpeed" @bind:event="oninput" disabled="@isForecastLoading" style="width:100%;box-sizing:border-box;" />
+            <input type="number" @bind="prediction.PredictedMaxWindSpeed" @bind:event="oninput" disabled="@busy" style="width:100%;box-sizing:border-box;" />
         </div>
 
-        @if (forecast != null && !isForecastLoading)
+        @if (forecast != null && !busy)
         {
             <div style="margin-top:auto;padding:0.6rem 0.8rem;background:#f0fdf4;border:1px solid #86efac;border-radius:6px;text-align:center;">
                 @if (PreviewPotentialPoints > 0)
@@ -92,32 +93,21 @@
 </div>
 
 <div style="margin-top:1rem;">
-    <button @onclick="Submit" disabled="@(isSubmitting || isForecastLoading || forecast == null)">
-        @(isSubmitting ? "Submitting..." : "Submit Prediction")
+    <button @onclick="Submit" disabled="@(busy || forecast == null)">
+        @(busy ? "Working..." : "Submit Prediction")
     </button>
 </div>
 
 @code {
     private Prediction prediction = new();
-    private bool isSubmitting;
-    private string? errorMessage;
     private WeatherObservation? forecast;
-    private bool isForecastLoading;
+    private string? errorMessage;
+    private bool busy;
     private double? selectedLat;
     private double? selectedLon;
 
-    private static DateTime MinDateTime => DateTime.UtcNow.AddHours(48);
-    private static DateTime MaxDateTime => DateTime.UtcNow.AddDays(14);
-    private string minDate => MinDateTime.ToString("yyyy-MM-dd");
-    private string maxDate => MaxDateTime.ToString("yyyy-MM-dd");
-
-    // Mirror of ScoringService constants for client-side preview only
-    private const double MaxTempDiff   = 30.0;
-    private const double MaxPrecipDiff = 2.0;
-    private const double MaxWindDiff   = 30.0;
-    private const double MinTempDiff   = 1.0;
-    private const double MinPrecipDiff = 0.05;
-    private const double MinWindDiff   = 1.0;
+    private string minDate => DateTime.UtcNow.AddHours(48).ToString("yyyy-MM-dd");
+    private string maxDate => DateTime.UtcNow.AddDays(14).ToString("yyyy-MM-dd");
 
     private int PreviewPotentialPoints
     {
@@ -125,38 +115,22 @@
         {
             if (forecast is null) return 0;
 
-            var daysOut = (prediction.TargetDate.Date - DateTime.UtcNow.Date).TotalDays;
+            // Temporarily wire up forecast fields so ScoringService can calculate
+            prediction.ForecastTempHigh = forecast.TempHigh;
+            prediction.ForecastTempLow = forecast.TempLow;
+            prediction.ForecastPrecipitation = forecast.Precipitation;
+            prediction.ForecastMaxWindSpeed = forecast.MaxWindSpeed;
 
-            var boldness =
-                (Boldness(prediction.PredictedTempHigh,        forecast.TempHigh,     MaxTempDiff) +
-                 Boldness(prediction.PredictedTempLow,         forecast.TempLow,      MaxTempDiff) +
-                 Boldness(prediction.PredictedPrecipitation,   forecast.Precipitation, MaxPrecipDiff) +
-                 Boldness(prediction.PredictedMaxWindSpeed,    forecast.MaxWindSpeed,  MaxWindDiff)) / 4.0;
+            if (!ScoringService.IsWorthSubmitting(prediction)) return 0;
 
-            var timeMult = Math.Pow(2.0, daysOut / 7.0);
-            var pts = (int)Math.Round(boldness * 100 * timeMult / 2.0);
-
-            // Return 0 if not bold enough (mirrors IsWorthSubmitting)
-            bool worthIt =
-                Math.Abs(prediction.PredictedTempHigh      - forecast.TempHigh)      >= MinTempDiff   ||
-                Math.Abs(prediction.PredictedTempLow       - forecast.TempLow)       >= MinTempDiff   ||
-                Math.Abs(prediction.PredictedPrecipitation - forecast.Precipitation) >= MinPrecipDiff ||
-                Math.Abs(prediction.PredictedMaxWindSpeed  - forecast.MaxWindSpeed)  >= MinWindDiff;
-
-            return worthIt ? pts : 0;
+            ScoringService.SetPotentialPoints(prediction);
+            return prediction.PotentialPoints;
         }
-    }
-
-    private static double Boldness(double predicted, double forecastVal, double maxDiff)
-    {
-        var diff = Math.Abs(predicted - forecastVal);
-        var normalized = Math.Min(diff / maxDiff, 1.0);
-        return Math.Pow(normalized, 0.5);
     }
 
     protected override void OnInitialized()
     {
-        prediction.TargetDate = MinDateTime.Date;
+        prediction.TargetDate = DateTime.UtcNow.AddHours(48).Date;
     }
 
     private async Task HandleCitySelected(CityMapPicker.CitySelection city)
@@ -181,12 +155,11 @@
     {
         if (!selectedLat.HasValue || !selectedLon.HasValue) return;
 
-        isForecastLoading = true;
+        busy = true;
         forecast = null;
         StateHasChanged();
 
         forecast = await WeatherService.GetForecastAsync(selectedLat.Value, selectedLon.Value, prediction.TargetDate);
-        isForecastLoading = false;
 
         if (forecast != null)
         {
@@ -196,6 +169,7 @@
             prediction.PredictedMaxWindSpeed  = forecast.MaxWindSpeed;
         }
 
+        busy = false;
         StateHasChanged();
     }
 
@@ -207,13 +181,13 @@
             return;
         }
 
-        if (prediction.TargetDate < MinDateTime.Date)
+        if (prediction.TargetDate < DateTime.UtcNow.AddHours(48).Date)
         {
             errorMessage = "Target date must be at least 48 hours in the future.";
             return;
         }
 
-        isSubmitting = true;
+        busy = true;
         errorMessage = null;
 
         try
@@ -237,7 +211,7 @@
         }
         finally
         {
-            isSubmitting = false;
+            busy = false;
         }
     }
 }

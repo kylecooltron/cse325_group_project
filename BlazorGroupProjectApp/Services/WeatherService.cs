@@ -28,10 +28,9 @@ public class WeatherService
     {
         var dateStr = date.ToString("yyyy-MM-dd");
         // open-meteo forecast API covers up to 16 days; archive covers past dates
-        var isPast = date.Date < DateTime.UtcNow.Date;
-        var baseUrl = isPast
-            ? $"https://archive-api.open-meteo.com/v1/archive"
-            : $"https://api.open-meteo.com/v1/forecast";
+        var baseUrl = date.Date < DateTime.UtcNow.Date
+            ? "https://archive-api.open-meteo.com/v1/archive"
+            : "https://api.open-meteo.com/v1/forecast";
 
         var url = $"{baseUrl}?latitude={lat}&longitude={lon}" +
                   $"&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max,weather_code" +
@@ -41,23 +40,7 @@ public class WeatherService
         try
         {
             var response = await _httpClient.GetFromJsonAsync<OpenMeteoForecastResponse>(url, JsonOptions);
-            if (response?.Daily == null) return null;
-
-            var maxTemp = response.Daily.Temperature2mMax?.FirstOrDefault() ?? 0;
-            var minTemp = response.Daily.Temperature2mMin?.FirstOrDefault() ?? 0;
-            var precip = response.Daily.PrecipitationSum?.FirstOrDefault() ?? 0;
-            var wind = response.Daily.WindSpeed10mMax?.FirstOrDefault() ?? 0;
-            var code = (int)(response.Daily.WeatherCode?.FirstOrDefault() ?? 0);
-
-            return new WeatherObservation
-            {
-                ObservedAt = date,
-                TempHigh = Math.Round(maxTemp, 1),
-                TempLow = Math.Round(minTemp, 1),
-                Precipitation = Math.Round(precip, 2),
-                MaxWindSpeed = Math.Round(wind, 1),
-                Description = WmoCodeToDescription(code)
-            };
+            return ParseDailyResponse(response, date, null);
         }
         catch (Exception ex)
         {
@@ -80,24 +63,7 @@ public class WeatherService
         try
         {
             var response = await _httpClient.GetFromJsonAsync<OpenMeteoForecastResponse>(url, JsonOptions);
-            if (response?.Daily == null) return null;
-
-            var maxTemp = response.Daily.Temperature2mMax?.FirstOrDefault() ?? 0;
-            var minTemp = response.Daily.Temperature2mMin?.FirstOrDefault() ?? 0;
-            var precip = response.Daily.PrecipitationSum?.FirstOrDefault() ?? 0;
-            var wind = response.Daily.WindSpeed10mMax?.FirstOrDefault() ?? 0;
-            var code = (int)(response.Daily.WeatherCode?.FirstOrDefault() ?? 0);
-
-            return new WeatherObservation
-            {
-                Location = location,
-                ObservedAt = DateTime.UtcNow,
-                TempHigh = Math.Round(maxTemp, 1),
-                TempLow = Math.Round(minTemp, 1),
-                Precipitation = Math.Round(precip, 2),
-                MaxWindSpeed = Math.Round(wind, 1),
-                Description = WmoCodeToDescription(code)
-            };
+            return ParseDailyResponse(response, DateTime.UtcNow, location);
         }
         catch (Exception ex)
         {
@@ -121,30 +87,31 @@ public class WeatherService
         try
         {
             var response = await _httpClient.GetFromJsonAsync<OpenMeteoForecastResponse>(url, JsonOptions);
-            if (response?.Daily == null) return null;
-
-            var maxTemp = response.Daily.Temperature2mMax?.FirstOrDefault() ?? 0;
-            var minTemp = response.Daily.Temperature2mMin?.FirstOrDefault() ?? 0;
-            var precip = response.Daily.PrecipitationSum?.FirstOrDefault() ?? 0;
-            var wind = response.Daily.WindSpeed10mMax?.FirstOrDefault() ?? 0;
-            var code = (int)(response.Daily.WeatherCode?.FirstOrDefault() ?? 0);
-
-            return new WeatherObservation
-            {
-                Location = location,
-                ObservedAt = date,
-                TempHigh = Math.Round(maxTemp, 1),
-                TempLow = Math.Round(minTemp, 1),
-                Precipitation = Math.Round(precip, 2),
-                MaxWindSpeed = Math.Round(wind, 1),
-                Description = WmoCodeToDescription(code)
-            };
+            return ParseDailyResponse(response, date, location);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to fetch historical weather for {Location} on {Date}", location, date);
             return null;
         }
+    }
+
+    private static WeatherObservation? ParseDailyResponse(OpenMeteoForecastResponse? response, DateTime observedAt, string? location)
+    {
+        if (response?.Daily == null) return null;
+
+        var d = response.Daily;
+        var code = (int)(d.WeatherCode?.FirstOrDefault() ?? 0);
+        return new WeatherObservation
+        {
+            Location = location ?? string.Empty,
+            ObservedAt = observedAt,
+            TempHigh = Math.Round(d.Temperature2mMax?.FirstOrDefault() ?? 0, 1),
+            TempLow = Math.Round(d.Temperature2mMin?.FirstOrDefault() ?? 0, 1),
+            Precipitation = Math.Round(d.PrecipitationSum?.FirstOrDefault() ?? 0, 2),
+            MaxWindSpeed = Math.Round(d.WindSpeed10mMax?.FirstOrDefault() ?? 0, 1),
+            Description = WmoCodeToDescription(code)
+        };
     }
 
     private async Task<(double Lat, double Lon)?> GeocodeAsync(string location)
