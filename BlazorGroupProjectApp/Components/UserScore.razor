@@ -1,6 +1,34 @@
-@* TODO: inject LeaderboardService and load score for authenticated user *@
+@inject BlazorGroupProjectApp.Services.LeaderboardService LeaderboardService
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <div class="user-score">
     <h3>Your Score</h3>
-    <p>Points this month: <strong>--</strong> &nbsp; Points this year: <strong>--</strong></p>
+    @if (monthPoints == null)
+    {
+        <p>Loading...</p>
+    }
+    else
+    {
+        <p>Points this month: <strong>@monthPoints</strong> &nbsp; Points this year: <strong>@yearPoints</strong></p>
+    }
 </div>
+
+@code {
+    private int? monthPoints;
+    private int? yearPoints;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var userId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null) return;
+
+        var now = DateTime.UtcNow;
+
+        var monthly = await LeaderboardService.GetCurrentMonthLeaderboardAsync();
+        monthPoints = monthly.FirstOrDefault(e => e.UserId == userId)?.Points ?? 0;
+
+        var yearly = await LeaderboardService.GetYearLeaderboardAsync(now.Year);
+        yearPoints = yearly.FirstOrDefault(e => e.UserId == userId)?.Points ?? 0;
+    }
+}

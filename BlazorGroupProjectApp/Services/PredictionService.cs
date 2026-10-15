@@ -20,6 +20,7 @@ public class PredictionService
     public async Task<List<Prediction>> GetUserPredictionsAsync(string userId)
     {
         return await _db.Predictions
+            .AsNoTracking()
             .Where(p => p.UserId == userId)
             .Include(p => p.Result)
             .OrderBy(p => p.TargetDate)
@@ -30,6 +31,7 @@ public class PredictionService
     public async Task<Prediction?> GetPredictionAsync(int predictionId, string userId)
     {
         return await _db.Predictions
+            .AsNoTracking()
             .Include(p => p.Result)
             .SingleOrDefaultAsync(p => p.Id == predictionId && p.UserId == userId);
     }

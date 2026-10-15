@@ -1,6 +1,6 @@
 @page "/dashboard"
 @attribute [Authorize]
-@rendermode InteractiveServer
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
 @inject BlazorGroupProjectApp.Services.PredictionService PredictionService
 @inject BlazorGroupProjectApp.Services.ScoringService ScoringService
 @inject AuthenticationStateProvider AuthenticationStateProvider
@@ -9,7 +9,10 @@
 
 <h1>Dashboard</h1>
 
-<UserScore />
+@if (loaded)
+{
+    <UserScore />
+}
 
 @if (errorMessage != null)
 {
@@ -88,6 +91,7 @@
     private BlazorGroupProjectApp.Models.Prediction? upcoming;
     private BlazorGroupProjectApp.Models.Prediction? lastScored;
     private string? errorMessage;
+    private bool loaded;
 
     // Used as a "loaded but empty" placeholder so we can tell loading from no results
     private static readonly BlazorGroupProjectApp.Models.Prediction Empty = new();
@@ -119,6 +123,10 @@
             upcoming = Empty;
             lastScored = Empty;
             _ = ex;
+        }
+        finally
+        {
+            loaded = true;
         }
     }
 }

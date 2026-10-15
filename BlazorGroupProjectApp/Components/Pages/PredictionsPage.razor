@@ -1,7 +1,8 @@
 @page "/predictions"
 @attribute [Authorize]
-@rendermode InteractiveServer
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
 @inject BlazorGroupProjectApp.Services.PredictionService PredictionService
+@inject BlazorGroupProjectApp.Services.ScoringService ScoringService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
 <PageTitle>My Predictions - ClimateSeer</PageTitle>
@@ -40,6 +41,7 @@ else
 
         try
         {
+            await ScoringService.EvaluatePendingPredictionsAsync();
             predictions = await PredictionService.GetUserPredictionsAsync(userId);
         }
         catch (Exception ex)
