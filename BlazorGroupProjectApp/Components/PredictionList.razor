@@ -38,7 +38,7 @@ else
                 </div>
 
                 @* Card 3 — Current forecast *@
-                <div class="card card-current">
+                <div class="card card-current" aria-live="polite" aria-atomic="true">
                     <div class="card-label">Current Forecast</div>
                     @if (currentForecasts.TryGetValue(p.Id, out var cf))
                     {
@@ -57,7 +57,9 @@ else
                     else
                     {
                         <div class="load-forecast-wrapper">
-                            <button @onclick="() => LoadCurrentForecast(p)" disabled="@loadingIds.Contains(p.Id)">
+                            <button @onclick="() => LoadCurrentForecast(p)"
+                                    disabled="@loadingIds.Contains(p.Id)"
+                                    aria-busy="@loadingIds.Contains(p.Id)">
                                 @(loadingIds.Contains(p.Id) ? "Loading..." : "Load Current Forecast")
                             </button>
                         </div>

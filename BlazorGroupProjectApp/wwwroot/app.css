@@ -2,6 +2,23 @@ html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
+/* Skip navigation link — hidden until focused by keyboard */
+.skip-nav {
+    position: absolute;
+    top: -100%;
+    left: 0;
+    padding: 0.5rem 1rem;
+    background: #1b6ec2;
+    color: white;
+    font-weight: bold;
+    z-index: 9999;
+    text-decoration: none;
+}
+
+.skip-nav:focus {
+    top: 0;
+}
+
 a, .btn-link {
     color: #006bb7;
 }

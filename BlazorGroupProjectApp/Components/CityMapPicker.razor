@@ -2,7 +2,27 @@
 @inject HttpClient Http
 @implements IAsyncDisposable
 
-<div id="@mapId" style="height:400px;width:100%;border-radius:6px;"></div>
+<div id="@mapId"
+     style="height:400px;width:100%;border-radius:6px;"
+     role="application"
+     aria-label="City selection map — use the dropdown below to select a city if you cannot use the map"
+     aria-describedby="@LabelId">
+</div>
+
+<div style="margin-top:0.5rem;">
+    <label for="@selectId">Or select a city from the list:</label>
+    <select id="@selectId" @onchange="HandleSelectChange" aria-label="City selection list">
+        <option value="">-- Choose a city --</option>
+        @if (cities != null)
+        {
+            @foreach (var city in cities)
+            {
+                <option value="@city.Name">@city.Name</option>
+            }
+        }
+    </select>
+</div>
+
 @if (!string.IsNullOrEmpty(SelectedCity))
 {
     <p style="margin-top:8px;">Selected: <strong>@SelectedCity</strong></p>
@@ -12,12 +32,15 @@
     public record CitySelection(string Name, double Lat, double Lon);
 
     [Parameter] public EventCallback<CitySelection> OnCitySelected { get; set; }
+    [Parameter] public string? LabelId { get; set; }
 
     public string? SelectedCity { get; private set; }
 
     private readonly string mapId = "city-map-" + Guid.NewGuid().ToString("N")[..8];
+    private readonly string selectId = "city-select-" + Guid.NewGuid().ToString("N")[..8];
     private DotNetObjectReference<CityMapPicker>? _ref;
     private bool _jsReady;
+    private CityData[]? cities;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -25,9 +48,21 @@
         {
             _jsReady = true;
             _ref = DotNetObjectReference.Create(this);
-            var cities = await Http.GetFromJsonAsync<CityData[]>("cities.json");
+            cities = await Http.GetFromJsonAsync<CityData[]>("cities.json");
             await JS.InvokeVoidAsync("cityMap.init", mapId, cities, _ref);
+            StateHasChanged();
         }
+    }
+
+    private async Task HandleSelectChange(ChangeEventArgs e)
+    {
+        var name = e.Value?.ToString();
+        if (string.IsNullOrEmpty(name) || cities == null) return;
+
+        var city = cities.FirstOrDefault(c => c.Name == name);
+        if (city == null) return;
+
+        await CityClicked(city.Name, city.Lat, city.Lon);
     }
 
     [JSInvokable]
