@@ -30,6 +30,10 @@ secret
 Authentication:Google:ClientId
 Authentication:Google:ClientSecret
 
+Deploying
+dotnet publish -c Release -o ./publish
+Compress-Archive -Path ./publish/* -DestinationPath ./publish.zip -Force
+Kudu zip deploy
 
 
 Trello Board
