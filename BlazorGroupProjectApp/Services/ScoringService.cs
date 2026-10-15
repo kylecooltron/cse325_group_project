@@ -1,5 +1,6 @@
 using BlazorGroupProjectApp.Data;
 using BlazorGroupProjectApp.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace BlazorGroupProjectApp.Services;
 
@@ -16,10 +17,12 @@ public class ScoringService
     private const double MinWindDiff = 1.0;
 
     private readonly ClimateSeerContext _db;
+    private readonly WeatherService _weather;
 
-    public ScoringService(ClimateSeerContext db)
+    public ScoringService(ClimateSeerContext db, WeatherService weather)
     {
         _db = db;
+        _weather = weather;
     }
 
     // Returns true if the prediction is different enough from the forecast to submit
@@ -76,10 +79,27 @@ public class ScoringService
         };
     }
 
+    // Finds all predictions whose target date has passed and scores them against real weather data
     public async Task EvaluatePendingPredictionsAsync()
     {
-        // TODO: query predictions past their target date without results and score them
-        await Task.CompletedTask;
+        var today = DateTime.UtcNow.Date;
+
+        var pending = await _db.Predictions
+            .Where(p => p.Status == PredictionStatus.Pending && p.TargetDate.Date < today)
+            .ToListAsync();
+
+        foreach (var prediction in pending)
+        {
+            var actual = await _weather.GetHistoricalWeatherAsync(prediction.Location, prediction.TargetDate);
+            if (actual == null) continue; // archive data not available yet, try again next time
+
+            var result = Score(prediction, actual);
+            _db.PredictionResults.Add(result);
+
+            prediction.Status = PredictionStatus.Scored;
+        }
+
+        await _db.SaveChangesAsync();
     }
 
     // Returns 0-1 representing how far the prediction deviates from the forecast

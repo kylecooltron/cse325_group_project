@@ -2,6 +2,7 @@
 @attribute [Authorize]
 @rendermode InteractiveServer
 @inject BlazorGroupProjectApp.Services.PredictionService PredictionService
+@inject BlazorGroupProjectApp.Services.ScoringService ScoringService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
 <PageTitle>Dashboard - ClimateSeer</PageTitle>
@@ -99,6 +100,8 @@
 
         try
         {
+            await ScoringService.EvaluatePendingPredictionsAsync();
+
             var all = await PredictionService.GetUserPredictionsAsync(userId);
 
             upcoming = all.FirstOrDefault(p =>
