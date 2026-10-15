@@ -11,7 +11,11 @@
     <a href="/predictions/new" class="btn-new-prediction">+ New Prediction</a>
 </div>
 
-@if (predictions == null)
+@if (errorMessage != null)
+{
+    <p role="alert" style="color:red;">@errorMessage</p>
+}
+else if (predictions == null)
 {
     <p>Loading predictions...</p>
 }
@@ -26,12 +30,22 @@ else
 
 @code {
     private List<BlazorGroupProjectApp.Models.Prediction>? predictions;
+    private string? errorMessage;
 
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var userId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        if (userId != null)
+        if (userId == null) return;
+
+        try
+        {
             predictions = await PredictionService.GetUserPredictionsAsync(userId);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Could not load your predictions. Please try refreshing the page.";
+            _ = ex;
+        }
     }
 }

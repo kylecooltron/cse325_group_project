@@ -40,7 +40,11 @@ else
                 @* Card 3 — Current forecast *@
                 <div class="card card-current" aria-live="polite" aria-atomic="true">
                     <div class="card-label">Current Forecast</div>
-                    @if (currentForecasts.TryGetValue(p.Id, out var cf))
+                    @if (forecastErrors.TryGetValue(p.Id, out var err))
+                    {
+                        <span style="color:#e53e3e;font-size:0.85rem;">@err</span>
+                    }
+                    else if (currentForecasts.TryGetValue(p.Id, out var cf))
                     {
                         if (cf == null)
                         {
@@ -88,20 +92,32 @@ else
     [Parameter] public List<Prediction>? Predictions { get; set; }
 
     private Dictionary<int, WeatherObservation?> currentForecasts = new();
+    private Dictionary<int, string> forecastErrors = new();
     private HashSet<int> loadingIds = new();
 
     private async Task LoadCurrentForecast(Prediction p)
     {
         loadingIds.Add(p.Id);
+        forecastErrors.Remove(p.Id);
         StateHasChanged();
 
-        var obs = await WeatherService.GetForecastAsync(p.Location, p.TargetDate);
-        currentForecasts[p.Id] = obs;
-        loadingIds.Remove(p.Id);
-        StateHasChanged();
+        try
+        {
+            var obs = await WeatherService.GetForecastAsync(p.Location, p.TargetDate);
+            currentForecasts[p.Id] = obs;
+        }
+        catch
+        {
+            forecastErrors[p.Id] = "Could not load forecast. Try again.";
+        }
+        finally
+        {
+            loadingIds.Remove(p.Id);
+            StateHasChanged();
+        }
     }
 
-    // Returns transparent when predicted value matches forecast value (field was not changed)
+    // Highlight the value only if the user changed it from the forecast
     private static string MatchColor(double predicted, double forecast, string activeColor) =>
         predicted == forecast ? "transparent" : activeColor;
 

@@ -45,7 +45,7 @@ public class PredictionService
         if (DateTime.UtcNow > prediction.Deadline)
             throw new InvalidOperationException("Prediction deadline has passed.");
 
-        // Re-fetch the forecast server-side so the client can't spoof it
+        // Re-fetch the forecast on the server so the submitted values can't be tampered with
         var forecast = await _weather.GetForecastAsync(prediction.Location, prediction.TargetDate);
         if (forecast is null)
             throw new InvalidOperationException("Could not retrieve forecast for that location and date.");

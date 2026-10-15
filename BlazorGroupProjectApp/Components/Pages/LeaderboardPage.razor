@@ -6,7 +6,11 @@
 
 <h1>Leaderboard</h1>
 
-@if (entries == null)
+@if (errorMessage != null)
+{
+    <p role="alert" style="color:red;">@errorMessage</p>
+}
+else if (entries == null)
 {
     <p>Loading leaderboard...</p>
 }
@@ -21,9 +25,18 @@ else
 
 @code {
     private List<BlazorGroupProjectApp.Models.LeaderboardEntry>? entries;
+    private string? errorMessage;
 
     protected override async Task OnInitializedAsync()
     {
-        entries = await LeaderboardService.GetCurrentMonthLeaderboardAsync();
+        try
+        {
+            entries = await LeaderboardService.GetCurrentMonthLeaderboardAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Could not load the leaderboard. Please try refreshing the page.";
+            _ = ex;
+        }
     }
 }

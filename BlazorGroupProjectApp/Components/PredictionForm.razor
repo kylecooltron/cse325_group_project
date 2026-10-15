@@ -111,7 +111,7 @@
         {
             if (forecast is null) return 0;
 
-            // Temporarily wire up forecast fields so ScoringService can calculate
+            // Fill in forecast fields so ScoringService has what it needs to calculate
             prediction.ForecastTempHigh = forecast.TempHigh;
             prediction.ForecastTempLow = forecast.TempLow;
             prediction.ForecastPrecipitation = forecast.Precipitation;

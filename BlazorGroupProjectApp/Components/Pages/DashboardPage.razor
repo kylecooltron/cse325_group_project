@@ -10,6 +10,11 @@
 
 <UserScore />
 
+@if (errorMessage != null)
+{
+    <p role="alert" style="color:red;">@errorMessage</p>
+}
+
 <div class="dashboard-cards">
 
     @* Next upcoming prediction *@
@@ -81,8 +86,9 @@
 @code {
     private BlazorGroupProjectApp.Models.Prediction? upcoming;
     private BlazorGroupProjectApp.Models.Prediction? lastScored;
+    private string? errorMessage;
 
-    // Sentinel: non-null but empty Location = "loaded, nothing found"
+    // Used as a "loaded but empty" placeholder so we can tell loading from no results
     private static readonly BlazorGroupProjectApp.Models.Prediction Empty = new();
 
     protected override async Task OnInitializedAsync()
@@ -91,15 +97,25 @@
         var userId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         if (userId == null) return;
 
-        var all = await PredictionService.GetUserPredictionsAsync(userId);
+        try
+        {
+            var all = await PredictionService.GetUserPredictionsAsync(userId);
 
-        upcoming = all.FirstOrDefault(p =>
-            p.Status == BlazorGroupProjectApp.Models.PredictionStatus.Pending &&
-            p.TargetDate >= DateTime.UtcNow.Date) ?? Empty;
+            upcoming = all.FirstOrDefault(p =>
+                p.Status == BlazorGroupProjectApp.Models.PredictionStatus.Pending &&
+                p.TargetDate >= DateTime.UtcNow.Date) ?? Empty;
 
-        lastScored = all
-            .Where(p => p.Status == BlazorGroupProjectApp.Models.PredictionStatus.Scored && p.Result != null)
-            .OrderByDescending(p => p.TargetDate)
-            .FirstOrDefault() ?? Empty;
+            lastScored = all
+                .Where(p => p.Status == BlazorGroupProjectApp.Models.PredictionStatus.Scored && p.Result != null)
+                .OrderByDescending(p => p.TargetDate)
+                .FirstOrDefault() ?? Empty;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Could not load your predictions. Please try refreshing the page.";
+            upcoming = Empty;
+            lastScored = Empty;
+            _ = ex;
+        }
     }
 }

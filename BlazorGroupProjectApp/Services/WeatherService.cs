@@ -27,7 +27,7 @@ public class WeatherService
     public async Task<WeatherObservation?> GetForecastAsync(double lat, double lon, DateTime date)
     {
         var dateStr = date.ToString("yyyy-MM-dd");
-        // open-meteo forecast API covers up to 16 days; archive covers past dates
+        // Use the archive API for past dates, forecast API for future dates
         var baseUrl = date.Date < DateTime.UtcNow.Date
             ? "https://archive-api.open-meteo.com/v1/archive"
             : "https://api.open-meteo.com/v1/forecast";
@@ -148,7 +148,7 @@ public class WeatherService
         _ => "Unknown"
     };
 
-    // Response models for Open-Meteo
+    // Models that match the Open-Meteo API response structure
     private class OpenMeteoForecastResponse
     {
         public DailyData? Daily { get; set; }
