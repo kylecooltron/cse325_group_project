@@ -1,5 +1,5 @@
 @inject IJSRuntime JS
-@inject HttpClient Http
+@inject IWebHostEnvironment Env
 @implements IAsyncDisposable
 
 <div id="@mapId"
@@ -48,7 +48,9 @@
         {
             _jsReady = true;
             _ref = DotNetObjectReference.Create(this);
-            cities = await Http.GetFromJsonAsync<CityData[]>("cities.json");
+            var path = Path.Combine(Env.WebRootPath, "cities.json");
+            var json = await File.ReadAllTextAsync(path);
+            cities = System.Text.Json.JsonSerializer.Deserialize<CityData[]>(json, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             await JS.InvokeVoidAsync("cityMap.init", mapId, cities, _ref);
             StateHasChanged();
         }
@@ -76,7 +78,13 @@
     public async ValueTask DisposeAsync()
     {
         if (_jsReady)
-            await JS.InvokeVoidAsync("cityMap.dispose", mapId);
+        {
+            try
+            {
+                await JS.InvokeVoidAsync("cityMap.dispose", mapId);
+            }
+            catch (JSDisconnectedException) { }
+        }
         _ref?.Dispose();
     }
 

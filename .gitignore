@@ -23,6 +23,7 @@ packages/
 
 # Publish output
 [Pp]ublish/
+publish.zip
 PublishProfiles/
 
 # Rider / JetBrains
